@@ -56,23 +56,23 @@
 
         /* === Theming Engine === */
         body.theme-glass {
-            --card-bg: rgba(30, 41, 59, 0.4);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-            --card-backdrop: blur(16px);
-            --btn-bg: rgba(255, 255, 255, 0.05);
-            --btn-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --btn-active: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(15, 23, 42, 0.45);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+            --card-backdrop: blur(24px);
+            --btn-bg: rgba(255, 255, 255, 0.08);
+            --btn-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            --btn-active: rgba(255, 255, 255, 0.15);
         }
 
         body.theme-neu {
             --card-bg: var(--bg-color);
             --card-border: transparent;
-            --card-shadow: 8px 8px 16px #060a12, -8px -8px 16px #182442;
+            --card-shadow: 10px 10px 20px #090e19, -10px -10px 20px #15203b;
             --card-backdrop: none;
             --btn-bg: var(--bg-color);
-            --btn-shadow: 5px 5px 10px #060a12, -5px -5px 10px #182442;
-            --btn-active-shadow: inset 4px 4px 8px #060a12, inset -4px -4px 8px #182442;
+            --btn-shadow: 6px 6px 12px #090e19, -6px -6px 12px #15203b;
+            --btn-active-shadow: inset 5px 5px 10px #090e19, inset -5px -5px 10px #15203b;
         }
 
         .depth-card {
@@ -113,9 +113,18 @@
             border: none;
         }
         body.theme-neu .custom-btn.primary {
-            box-shadow: 5px 5px 10px #060a12, -5px -5px 10px #182442, inset 2px 2px 5px rgba(255,255,255,0.2);
+            box-shadow: 6px 6px 12px #090e19, -6px -6px 12px #15203b, inset 2px 2px 5px rgba(255,255,255,0.2);
         }
         .custom-btn.primary:active { transform: scale(0.96); filter: brightness(0.9); }
+
+        .delete-btn {
+            border: 1px solid rgba(244, 63, 94, 0.3) !important;
+            transition: all 0.3s;
+        }
+        body.theme-neu .delete-btn {
+            box-shadow: 4px 4px 8px #090e19, -4px -4px 8px #15203b !important;
+        }
+        .delete-btn:hover { background: rgba(244, 63, 94, 0.1) !important; }
 
         /* === Custom Scrollable Area === */
         .scroll-container {
@@ -129,21 +138,32 @@
         .scroll-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
         /* === Secure Video Player === */
-        video {
+        .secure-embed-wrapper {
+            position: relative;
             width: 100%;
-            height: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
             background: #000;
-            outline: none;
             border-radius: 16px;
-        }
-        video::-webkit-media-controls-enclosure {
             overflow: hidden;
         }
-        video::-webkit-media-controls-panel {
-            width: calc(100% + 30px); /* Hides the three dots overflow */
+        .secure-embed-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            z-index: 10;
         }
-        video::-webkit-media-controls-download-button {
-            display: none !important;
+        /* Invisible overlay to catch top-right clicks (anti-download) */
+        .secure-overlay-tr {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 60px;
+            background: transparent;
+            z-index: 20;
         }
 
         /* === Custom Toasts === */
@@ -241,9 +261,33 @@
 
     <!-- Anti-Debugger & Security Trap -->
     <script>
+        const rickrollUrl = 'https://youtu.be/dQw4w9WgXcQ';
+        let trapTriggered = false;
+
+        function triggerDevToolsTrap() {
+            if (trapTriggered) return;
+            trapTriggered = true;
+            window.location.href = rickrollUrl;
+        }
+
         // Disable Right Click
         document.addEventListener('contextmenu', e => e.preventDefault());
         
+        // Disable DevTools Shortcuts & Trigger Redirect
+        document.addEventListener('keydown', e => {
+            const key = e.key.toUpperCase();
+            if (key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(key)) || 
+               (e.ctrlKey && key === 'U')) {
+                e.preventDefault();
+                triggerDevToolsTrap();
+                return false;
+            }
+        });
+
+        // Debugger Timing Trap
+        setInterval(() => {
+            const before = new Date().getTime();
         // Disable DevTools Shortcuts
         document.addEventListener('keydown', e => {
             if (e.key === 'F12' || 
@@ -260,8 +304,8 @@
             (function() { return false; }['constructor']('debugger')());
             const after = new Date().getTime();
             if (after - before > 100) {
-                // Potential DevTools open, you can redirect or clear body here if desired
-                // document.body.innerHTML = 'Security Violation'; 
+                // Trap Sprung: Immediate redirect to Astley Protocol
+                window.location.href = 'https://youtu.be/dQw4w9WgXcQ'; 
             }
         }, 2000);
     </script>
@@ -364,12 +408,15 @@
                     <i class="fa-solid fa-xmark"></i>
                 </div>
             </div>
-            <div class="w-full bg-black aspect-video relative flex items-center justify-center">
-                <i id="player-loader" class="fa-solid fa-circle-notch fa-spin text-3xl absolute text-gray-500"></i>
-                <video id="secure-video" controls controlsList="nodownload noplaybackrate" disablePictureInPicture class="z-10"></video>
+            <div class="w-full bg-black relative flex items-center justify-center overflow-hidden">
+                <i id="player-loader" class="fa-solid fa-circle-notch fa-spin text-3xl absolute text-gray-500 z-0"></i>
+                <div class="secure-embed-wrapper w-full">
+                    <iframe id="secure-iframe" allowfullscreen></iframe>
+                    <div class="secure-overlay-tr" oncontextmenu="return false;"></div>
+                </div>
             </div>
             <div class="p-4 text-xs text-gray-400 flex justify-between items-center" style="background: rgba(0,0,0,0.3);">
-                <span id="player-uploader"><i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Secured Local Blob Node</span>
+                <span id="player-uploader"><i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Secured Remote Node</span>
             </div>
         </div>
     </div>
@@ -462,7 +509,7 @@
     <!-- Core Logic & Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child, push, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDpCAXfhldRc1nCZDWlWNRbcMFjqAh8uPc",
@@ -486,8 +533,8 @@
                 sound: true,
                 haptic: true
             },
-            view: 'feed', // 'feed' | 'upload'
-            authMode: 'login' // 'login' | 'signup'
+            view: 'feed', 
+            authMode: 'login' 
         };
 
         // --- Audio & Haptics Engine ---
@@ -553,43 +600,6 @@
                 el.classList.add('toast-out');
                 setTimeout(() => el.remove(), 300);
             }, 2500);
-        }
-
-        // --- IndexedDB Video Blob Cache ---
-        const IDB_NAME = 'SK-AnonMp4-DB';
-        const STORE = 'videos';
-
-        function initIDB() {
-            return new Promise((resolve, reject) => {
-                const req = indexedDB.open(IDB_NAME, 1);
-                req.onupgradeneeded = e => {
-                    if (!e.target.result.objectStoreNames.contains(STORE)) {
-                        e.target.result.createObjectStore(STORE, { keyPath: 'id' });
-                    }
-                };
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        async function saveToIDB(id, blob) {
-            const idb = await initIDB();
-            return new Promise((resolve, reject) => {
-                const tx = idb.transaction(STORE, 'readwrite');
-                tx.objectStore(STORE).put({ id, blob, timestamp: Date.now() });
-                tx.oncomplete = resolve;
-                tx.onerror = reject;
-            });
-        }
-
-        async function getFromIDB(id) {
-            const idb = await initIDB();
-            return new Promise((resolve, reject) => {
-                const tx = idb.transaction(STORE, 'readonly');
-                const req = tx.objectStore(STORE).get(id);
-                req.onsuccess = () => resolve(req.result ? req.result.blob : null);
-                req.onerror = reject;
-            });
         }
 
         // --- Cryptography (SHA-256) ---
@@ -683,7 +693,7 @@
 
         document.querySelectorAll('.modal-overlay').forEach(mod => {
             mod.addEventListener('click', e => {
-                if (e.target === mod && mod.id !== 'player-modal') { // prevent closing player accidentally
+                if (e.target === mod && mod.id !== 'player-modal') { 
                     closeModal(mod.id);
                 }
             });
@@ -693,9 +703,8 @@
         document.getElementById('close-auth-btn').addEventListener('click', () => { handleInteraction(); closeModal('auth-modal'); });
         document.getElementById('close-player-btn').addEventListener('click', () => { 
             handleInteraction(); 
-            const vid = document.getElementById('secure-video');
-            vid.pause();
-            vid.src = '';
+            const iframe = document.getElementById('secure-iframe');
+            iframe.src = ''; 
             closeModal('player-modal'); 
         });
 
@@ -782,7 +791,7 @@
             }
         });
 
-        // --- Upload Logic ---
+        // --- Upload Logic (AnonMP4 API) ---
         let pendingFile = null;
         
         document.getElementById('video-file-input').addEventListener('change', (e) => {
@@ -795,56 +804,45 @@
             }
         });
 
-        async function genThumbnail(file) {
-            return new Promise((resolve) => {
-                const v = document.createElement('video');
-                const canvas = document.createElement('canvas');
-                const url = URL.createObjectURL(file);
-                v.src = url;
-                v.muted = true;
-                v.playsInline = true;
-                v.onloadeddata = () => {
-                    v.currentTime = 1;
-                };
-                v.onseeked = () => {
-                    canvas.width = 640; canvas.height = 360;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    URL.revokeObjectURL(url);
-                };
-                v.onerror = () => resolve('https://placehold.co/640x360/111827/6366f1?text=Encrypted');
-            });
-        }
-
         document.getElementById('upload-action-btn').addEventListener('click', async () => {
             handleInteraction();
             if (!pendingFile) { toast('Insert video data packet.', 'error'); return; }
             if (!appState.user) { toast('Identification required.', 'error'); return; }
 
             const btn = document.getElementById('upload-action-btn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Establishing Uplink...`;
             btn.style.pointerEvents = 'none';
 
             try {
-                // 1. Generate unique ID & Thumbnail
-                const vidId = 'sk_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-                const title = document.getElementById('upload-title').value.trim() || pendingFile.name;
+                const customTitle = document.getElementById('upload-title').value.trim();
+                toast('Transmitting to Remote Node...', 'info');
                 
-                toast('Generating visual signature...', 'info');
-                const thumb = await genThumbnail(pendingFile);
-                
-                toast('Caching securely to Local IDB...', 'info');
-                // 2. Save actual Blob to IDB
-                await saveToIDB(vidId, pendingFile);
+                // 1. Upload to AnonMP4 API
+                const formData = new FormData();
+                formData.append('file', pendingFile);
 
-                toast('Syncing metadata to RTDB Node...', 'info');
-                // 3. Save Metadata to Firebase
+                const res = await fetch('https://anonmp4api.xyz/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const apiData = await res.json();
+                
+                if (!apiData.success) {
+                    throw new Error(apiData.error?.message || 'Transmission rejected by host.');
+                }
+
+                toast('Syncing metadata to RTDB...', 'info');
+                
+                // 2. Save Metadata to Firebase
                 const meta = {
-                    id: vidId,
-                    title: title,
+                    id: apiData.video_id,
+                    title: customTitle || apiData.title || pendingFile.name,
                     uploader: appState.user,
-                    thumbnail: thumb,
+                    thumbnail: apiData.thumbnail || 'https://placehold.co/640x360/111827/6366f1?text=Encrypted',
+                    watch_url: apiData.watch_url,
+                    embed_url: apiData.embed_url,
+                    delete_url: apiData.delete_url,
                     timestamp: Date.now(),
                     size: pendingFile.size
                 };
@@ -864,12 +862,35 @@
 
             } catch(e) {
                 console.error(e);
-                toast('Sequence Failure.', 'error');
+                toast(e.message || 'Sequence Failure.', 'error');
             } finally {
                 btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Encode & Sync`;
                 btn.style.pointerEvents = 'auto';
             }
         });
+
+        // --- Delete Logic ---
+        async function deleteVideo(key, deleteUrl, e) {
+            e.stopPropagation(); 
+            handleInteraction();
+            
+            toast('Initiating erasure protocol...', 'info');
+            
+            try {
+                // Ping external delete URL
+                if (deleteUrl) {
+                    fetch(deleteUrl, { mode: 'no-cors' }).catch(err => console.warn('Remote deletion silent error', err));
+                }
+                
+                // Remove from RTDB
+                await remove(ref(db, `SK-AnonMP4/videos/${key}`));
+                
+                toast('Entity permanently erased.', 'success');
+            } catch (err) {
+                console.error(err);
+                toast('Erasure protocol failed.', 'error');
+            }
+        }
 
         // --- Feed Logic ---
         function fetchFeed() {
@@ -886,15 +907,28 @@
                 }
                 
                 empty.classList.add('hidden');
-                const vids = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
+                
+                // Map object entries to retain RTDB push keys
+                const vids = Object.entries(data)
+                    .map(([key, val]) => ({ dbKey: key, ...val }))
+                    .sort((a,b) => b.timestamp - a.timestamp);
 
                 vids.forEach(v => {
                     const card = document.createElement('div');
-                    card.className = 'depth-card overflow-hidden flex flex-col group cursor-pointer';
+                    card.className = 'depth-card overflow-hidden flex flex-col group cursor-pointer relative';
                     
+                    let deleteBtnHTML = '';
+                    if (appState.user === v.uploader) {
+                        deleteBtnHTML = `
+                            <div class="custom-btn delete-btn w-full mt-3 py-2 text-xs" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e;" id="del-${v.dbKey}">
+                                <i class="fa-solid fa-trash-can"></i> Erase
+                            </div>
+                        `;
+                    }
+
                     card.innerHTML = `
-                        <div class="relative aspect-video bg-black overflow-hidden">
-                            <img src="${v.thumbnail}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500">
+                        <div class="relative aspect-video bg-black overflow-hidden" id="play-${v.dbKey}">
+                            <img src="${v.thumbnail}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500" onerror="this.src='https://placehold.co/640x360/111827/6366f1?text=No+Thumbnail'">
                             <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <div class="w-12 h-12 rounded-full flex items-center justify-center text-white" style="background: var(--accent-color); box-shadow: 0 0 20px var(--accent-color);">
                                     <i class="fa-solid fa-play ml-1"></i>
@@ -902,54 +936,50 @@
                             </div>
                         </div>
                         <div class="p-4 flex-grow flex flex-col justify-between">
-                            <h3 class="font-bold text-sm line-clamp-2">${v.title}</h3>
-                            <div class="flex items-center justify-between text-xs text-gray-500 mt-3">
-                                <span><i class="fa-solid fa-user-shield text-[10px]" style="color: var(--accent-color);"></i> ${v.uploader}</span>
-                                <span>${new Date(v.timestamp).toLocaleDateString()}</span>
+                            <div>
+                                <h3 class="font-bold text-sm line-clamp-2">${v.title}</h3>
+                                <div class="flex items-center justify-between text-[10px] text-gray-500 mt-2">
+                                    <span class="truncate"><i class="fa-solid fa-user-shield" style="color: var(--accent-color);"></i> ${v.uploader}</span>
+                                    <span class="whitespace-nowrap ml-2">${new Date(v.timestamp).toLocaleDateString()}</span>
+                                </div>
                             </div>
+                            ${deleteBtnHTML}
                         </div>
                     `;
 
-                    // Handle Play
-                    card.addEventListener('click', () => playVideo(v));
                     grid.appendChild(card);
+
+                    document.getElementById(`play-${v.dbKey}`).addEventListener('click', () => playVideo(v));
+                    
+                    if (appState.user === v.uploader) {
+                        const delBtn = document.getElementById(`del-${v.dbKey}`);
+                        if(delBtn) {
+                            delBtn.addEventListener('click', (e) => deleteVideo(v.dbKey, v.delete_url, e));
+                        }
+                    }
                 });
             });
         }
 
-        async function playVideo(vData) {
+        function playVideo(vData) {
             handleInteraction();
             openModal('player-modal');
             document.getElementById('player-title').innerText = vData.title;
             document.getElementById('player-uploader').innerHTML = `<i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Origin: ${vData.uploader}`;
             
-            const vElement = document.getElementById('secure-video');
+            const iframe = document.getElementById('secure-iframe');
             const loader = document.getElementById('player-loader');
             
-            vElement.classList.add('hidden');
+            iframe.classList.add('opacity-0');
             loader.classList.remove('hidden');
 
-            try {
-                // Fetch blob from IDB
-                const blob = await getFromIDB(vData.id);
-                if (!blob) throw new Error('Blob missing from local cache.');
-
-                const url = URL.createObjectURL(blob);
-                vElement.src = url;
-                
-                vElement.onloadeddata = () => {
-                    loader.classList.add('hidden');
-                    vElement.classList.remove('hidden');
-                    vElement.play().catch(() => toast('Tap play to start.', 'info'));
-                };
-
-                // Cleanup URL when done to prevent memory leaks, handled implicitly on new load
-            } catch (e) {
-                console.error(e);
+            iframe.src = vData.embed_url || vData.watch_url;
+            
+            iframe.onload = () => {
                 loader.classList.add('hidden');
-                toast('Video not available in local cache. Original uploader node required.', 'error');
-                closeModal('player-modal');
-            }
+                iframe.classList.remove('opacity-0');
+                iframe.classList.add('transition-opacity', 'duration-500', 'opacity-100');
+            };
         }
 
         // Init App
