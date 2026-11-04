@@ -1,469 +1,278 @@
 <!DOCTYPE html>
-<html lang="en" translate="no">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SK AnonMp4</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#080c14',
+                        cardbg: '#111827',
+                        bordercolor: '#1f2937',
+                        accent: '#6366f1',
+                        accenthover: '#4f46e5',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* === Strict Layout & Security Constraints === */
-        :root {
-            --bg-color: #0f172a;
-            --accent-color: #6366f1;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --navbar-height: 70px;
-            --footer-height: 50px;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Prevent text selection */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden; /* Absolute prevention of pull-to-refresh & shifting */
-            overscroll-behavior: none;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.4s ease;
-        }
-
-        /* Input fields need selection */
-        input {
-            user-select: auto;
-            -webkit-user-select: auto;
-        }
-
-        /* === Theming Engine === */
-        body.theme-glass {
-            --card-bg: rgba(30, 41, 59, 0.4);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --card-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-            --card-backdrop: blur(16px);
-            --btn-bg: rgba(255, 255, 255, 0.05);
-            --btn-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --btn-active: rgba(255, 255, 255, 0.1);
-        }
-
-        body.theme-neu {
-            --card-bg: var(--bg-color);
-            --card-border: transparent;
-            --card-shadow: 8px 8px 16px #060a12, -8px -8px 16px #182442;
-            --card-backdrop: none;
-            --btn-bg: var(--bg-color);
-            --btn-shadow: 5px 5px 10px #060a12, -5px -5px 10px #182442;
-            --btn-active-shadow: inset 4px 4px 8px #060a12, inset -4px -4px 8px #182442;
-        }
-
-        .depth-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: var(--card-shadow);
-            backdrop-filter: var(--card-backdrop);
-            -webkit-backdrop-filter: var(--card-backdrop);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        /* Custom Div Buttons */
-        .custom-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border-radius: 14px;
-            background: var(--btn-bg);
-            box-shadow: var(--btn-shadow);
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--card-border);
-        }
-
-        body.theme-glass .custom-btn:active { background: var(--btn-active); transform: scale(0.96); }
-        body.theme-neu .custom-btn:active { box-shadow: var(--btn-active-shadow); transform: scale(0.98); }
-
-        .custom-btn.primary {
-            background: var(--accent-color);
-            box-shadow: 0 4px 15px var(--accent-color);
-            color: #fff;
-            border: none;
-        }
-        body.theme-neu .custom-btn.primary {
-            box-shadow: 5px 5px 10px #060a12, -5px -5px 10px #182442, inset 2px 2px 5px rgba(255,255,255,0.2);
-        }
-        .custom-btn.primary:active { transform: scale(0.96); filter: brightness(0.9); }
-
-        /* === Custom Scrollable Area === */
-        .scroll-container {
-            height: calc(100vh - var(--navbar-height) - var(--footer-height));
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 40px;
-        }
-        .scroll-container::-webkit-scrollbar { width: 6px; }
-        .scroll-container::-webkit-scrollbar-track { background: transparent; }
-        .scroll-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
-        /* === Secure Video Player === */
-        video {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            outline: none;
-            border-radius: 16px;
-        }
-        video::-webkit-media-controls-enclosure {
-            overflow: hidden;
-        }
-        video::-webkit-media-controls-panel {
-            width: calc(100% + 30px); /* Hides the three dots overflow */
-        }
-        video::-webkit-media-controls-download-button {
-            display: none !important;
-        }
-
-        /* === Custom Toasts === */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-        .custom-toast {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-color);
-            box-shadow: var(--card-shadow);
-            backdrop-filter: var(--card-backdrop);
-            color: var(--text-main);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px) scale(0.9); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .toast-out { animation: slideUp 0.3s ease-in forwards; }
-        @keyframes slideUp {
-            to { opacity: 0; transform: translateY(-20px) scale(0.9); }
-        }
-
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 5000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        
-        .modal-content {
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .player-modal-content { max-width: 900px; width: 100%; }
-
-        /* Form Inputs */
-        .custom-input {
-            width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        body.theme-neu .custom-input {
-            box-shadow: inset 4px 4px 8px #060a12, inset -4px -4px 8px #182442;
-            border: none;
-        }
-        .custom-input:focus { border-color: var(--accent-color); }
-        
-        /* Accent Color Picker */
-        .color-dot {
-            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-            border: 2px solid transparent; transition: transform 0.2s;
-        }
-        .color-dot:active { transform: scale(0.8); }
-        .color-dot.active { border-color: #fff; transform: scale(1.1); }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #080c14; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
     </style>
 </head>
-<body class="theme-glass">
+<body class="bg-darkbg text-gray-100 min-h-screen flex flex-col antialiased selection:bg-accent selection:text-white">
 
-    <!-- Anti-Debugger & Security Trap -->
-    <script>
-        // Disable Right Click
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        
-        // Disable DevTools Shortcuts
-        document.addEventListener('keydown', e => {
-            if (e.key === 'F12' || 
-               (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) || 
-               (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                return false;
-            }
-        });
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
-        // Debugger Trap
-        setInterval(() => {
-            const before = new Date().getTime();
-            (function() { return false; }['constructor']('debugger')());
-            const after = new Date().getTime();
-            if (after - before > 100) {
-                // Potential DevTools open, you can redirect or clear body here if desired
-                // document.body.innerHTML = 'Security Violation'; 
-            }
-        }, 2000);
-    </script>
-
-    <div id="toast-container"></div>
-
-    <!-- Top Navigation -->
-    <header class="depth-card mx-4 mt-4 h-[60px] flex items-center justify-between px-5 z-40 relative border-0">
-        <div class="flex items-center gap-3 cursor-pointer" id="nav-home-btn">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--accent-color);">
-                <i class="fa-solid fa-play"></i>
+    <!-- Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-darkbg/80 backdrop-blur-md border-b border-bordercolor">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('feed')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-play text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">SK AnonMp4</span>
+                    <span class="hidden sm:inline-block text-xs ml-2 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Secure Hub</span>
+                </div>
             </div>
-            <span class="text-lg font-bold tracking-tight">SK AnonMp4</span>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <div id="btn-upload" class="custom-btn hidden sm:flex px-3 py-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span class="text-xs">Upload</span>
-            </div>
-            <div id="btn-settings" class="custom-btn px-3 py-2">
-                <i class="fa-solid fa-gear"></i>
-            </div>
-            <div id="auth-area">
-                <!-- Injected via JS -->
+            
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <button onclick="switchTab('feed')" id="nav-feed" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-all text-gray-300 hover:text-white hover:bg-gray-800/60 flex items-center space-x-2">
+                    <i class="fa-solid fa-compass text-xs"></i>
+                    <span>Library</span>
+                </button>
+                <button onclick="switchTab('upload')" id="nav-upload" class="px-3.5 py-2 rounded-lg text-sm font-medium transition-all text-gray-300 hover:text-white hover:bg-gray-800/60 flex items-center space-x-2">
+                    <i class="fa-solid fa-cloud-arrow-up text-xs"></i>
+                    <span>Upload</span>
+                </button>
+                
+                <div id="auth-nav-area" class="flex items-center space-x-3 pl-2 border-l border-bordercolor">
+                    <!-- Dynamic Auth Buttons injected here -->
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Scrollable Main View -->
-    <main class="scroll-container mt-4 px-4 w-full max-w-6xl mx-auto" id="main-feed">
-        <div class="flex justify-between items-center mb-6 px-2">
-            <div>
-                <h1 class="text-2xl font-bold">Discover Videos</h1>
-                <p class="text-sm text-gray-400 mt-1">Secure local playback node</p>
-            </div>
-        </div>
-
-        <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Loader -->
-            <div class="depth-card aspect-video flex items-center justify-center text-gray-500">
-                <i class="fa-solid fa-spinner fa-spin text-2xl" style="color: var(--accent-color);"></i>
-            </div>
-        </div>
-
-        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center">
-            <i class="fa-solid fa-film text-5xl mb-4 text-gray-600"></i>
-            <h3 class="text-lg font-bold">No videos yet</h3>
-            <p class="text-sm text-gray-400">Be the first to upload securely.</p>
-        </div>
-    </main>
-
-    <!-- Upload View (Hidden by default) -->
-    <main class="scroll-container mt-4 px-4 w-full max-w-2xl mx-auto hidden" id="upload-view">
-        <div class="depth-card p-8">
-            <h2 class="text-xl font-bold mb-2">Secure Upload</h2>
-            <p class="text-xs text-gray-400 mb-8">Files are cached directly into IndexedDB for secure local playback and synced via RTDB metadata.</p>
-            
-            <div class="space-y-5">
-                <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-2xl p-10 text-center relative overflow-hidden transition-colors" style="background: rgba(0,0,0,0.2);">
-                    <input type="file" id="video-file-input" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    <div id="drop-prompt" class="pointer-events-none">
-                        <i class="fa-solid fa-file-video text-4xl mb-3" style="color: var(--accent-color);"></i>
-                        <p class="text-sm font-semibold">Tap to select video</p>
-                    </div>
-                    <div id="drop-selected" class="hidden pointer-events-none">
-                        <i class="fa-solid fa-circle-check text-4xl text-emerald-500 mb-3"></i>
-                        <p id="selected-filename" class="text-sm font-semibold text-emerald-400 truncate px-4"></p>
-                    </div>
-                </div>
-
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ================= FEED TAB ================= -->
+        <div id="tab-feed" class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-cardbg/50 border border-bordercolor p-6 rounded-2xl backdrop-blur-sm shadow-xl">
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Custom Title (Optional)</label>
-                    <input type="text" id="upload-title" class="custom-input" placeholder="Leave blank for filename">
+                    <h1 class="text-2xl font-bold text-white tracking-tight flex items-center space-x-3">
+                        <span>Video Feed</span>
+                        <span id="video-count-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">0 videos</span>
+                    </h1>
+                    <p class="text-sm text-gray-400 mt-1">Explore, stream, and watch community-uploaded videos directly inside the app.</p>
                 </div>
-
-                <div id="upload-action-btn" class="custom-btn primary w-full py-4 text-base">
-                    <i class="fa-solid fa-shield-halved"></i> Encode & Sync
+                <div class="flex items-center space-x-3">
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="search-input" oninput="filterVideos()" placeholder="Search videos..." class="w-full sm:w-64 pl-9 pr-4 py-2.5 bg-darkbg border border-bordercolor rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    <button onclick="loadVideos()" class="p-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl transition-colors border border-bordercolor shadow" title="Refresh Feed">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
                 </div>
             </div>
+
+            <!-- Videos Grid -->
+            <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Skeleton Loader -->
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse hidden sm:block shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse hidden lg:block shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-feed" class="hidden flex flex-col items-center justify-center py-16 px-4 text-center bg-cardbg/30 border border-bordercolor rounded-2xl">
+                <div class="w-16 h-16 rounded-2xl bg-gray-800 flex items-center justify-center text-gray-500 text-2xl mb-4 shadow">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-white">No Videos Found</h3>
+                <p class="text-sm text-gray-400 max-w-sm mt-1 mb-6">Be the first to upload a video or check back when others share media.</p>
+                <button onclick="switchTab('upload')" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-all shadow-lg shadow-indigo-600/30">
+                    Upload Video Now
+                </button>
+            </div>
         </div>
+
+        <!-- ================= UPLOAD TAB ================= -->
+        <div id="tab-upload" class="hidden max-w-2xl mx-auto space-y-6">
+            <div class="bg-cardbg border border-bordercolor p-8 rounded-2xl shadow-2xl">
+                <div class="text-center mb-8">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl mb-3">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">Upload Video to SK AnonMp4</h2>
+                    <p class="text-sm text-gray-400 mt-1">Instant local streaming engine & Firebase RTDB sync.</p>
+                </div>
+
+                <!-- Dropzone Form -->
+                <form id="upload-form" onsubmit="handleUpload(event)" class="space-y-6">
+                    <div id="drop-zone" class="relative border-2 border-dashed border-bordercolor hover:border-indigo-500 rounded-2xl p-8 text-center transition-all bg-darkbg/50 cursor-pointer">
+                        <input type="file" id="video-file-input" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(this)">
+                        <div id="drop-zone-prompt" class="space-y-3 pointer-events-none">
+                            <i class="fa-solid fa-file-arrow-up text-3xl text-indigo-400"></i>
+                            <p class="text-sm font-medium text-gray-200">Drag & drop your video file here, or <span class="text-indigo-400 underline">browse</span></p>
+                            <p class="text-xs text-gray-500">Supports MP4, MKV, AVI, MOV, WEBM (Max 20 GB)</p>
+                        </div>
+                        <div id="file-selected-info" class="hidden space-y-2">
+                            <i class="fa-solid fa-file-video text-3xl text-emerald-400"></i>
+                            <p id="selected-file-name" class="text-sm font-semibold text-white truncate max-w-xs mx-auto"></p>
+                            <p id="selected-file-size" class="text-xs text-gray-400"></p>
+                            <button type="button" onclick="clearSelectedFile(event)" class="text-xs text-rose-400 hover:underline">Change file</button>
+                        </div>
+                    </div>
+
+                    <!-- Custom Title Optional -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Custom Title (Optional)</label>
+                        <input type="text" id="custom-title-input" placeholder="Leave blank to use filename" class="w-full px-4 py-3 bg-darkbg border border-bordercolor rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+
+                    <!-- Progress Bar Container -->
+                    <div id="upload-progress-container" class="hidden space-y-2">
+                        <div class="flex justify-between text-xs text-gray-400">
+                            <span id="progress-status-text">Processing video & generating thumbnail...</span>
+                            <span id="progress-percent-text">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-darkbg rounded-full overflow-hidden border border-bordercolor">
+                            <div id="progress-bar-fill" class="h-full bg-indigo-600 transition-all duration-200" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="upload-submit-btn" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-xl shadow-lg shadow-indigo-600/35 transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Start Upload & Sync</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </main>
 
     <!-- Footer -->
-    <footer class="fixed bottom-0 w-full h-[50px] flex items-center justify-center text-[10px] text-gray-500 tracking-widest uppercase z-30" style="background: var(--bg-color);">
-        © 2026 Sanchar Koirala | All rights reserved
+    <footer class="mt-auto border-t border-bordercolor bg-cardbg/30 py-6 text-center text-xs text-gray-500">
+        <p>&copy; 2026 SK AnonMp4. Powered by Firebase RTDB (Folder: SK-AnonMP4) & Local Blob Stream Engine.</p>
     </footer>
 
-    <!-- Modals -->
-    
-    <!-- Player Modal -->
-    <div id="player-modal" class="modal-overlay">
-        <div class="modal-content player-modal-content depth-card flex flex-col overflow-hidden p-0 border-0">
-            <div class="flex items-center justify-between p-4 border-b" style="border-color: var(--card-border); background: rgba(0,0,0,0.3);">
-                <div class="flex items-center gap-3 w-4/5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <h3 id="player-title" class="font-bold text-sm truncate">Video Title</h3>
-                </div>
-                <div id="close-player-btn" class="custom-btn px-3 py-2 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </div>
-            </div>
-            <div class="w-full bg-black aspect-video relative flex items-center justify-center">
-                <i id="player-loader" class="fa-solid fa-circle-notch fa-spin text-3xl absolute text-gray-500"></i>
-                <video id="secure-video" controls controlsList="nodownload noplaybackrate" disablePictureInPicture class="z-10"></video>
-            </div>
-            <div class="p-4 text-xs text-gray-400 flex justify-between items-center" style="background: rgba(0,0,0,0.3);">
-                <span id="player-uploader"><i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Secured Local Blob Node</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-content depth-card p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold">Preferences</h3>
-                <div id="close-settings-btn" class="custom-btn px-3 py-2 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <!-- Theme -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-3">Vibe (Theme)</label>
-                    <div class="flex gap-3">
-                        <div class="custom-btn flex-1 text-xs py-3" id="theme-glass-btn">Glassmorphism</div>
-                        <div class="custom-btn flex-1 text-xs py-3" id="theme-neu-btn">Neumorphism</div>
-                    </div>
-                </div>
-
-                <!-- Accent Color -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-3">Accent Color</label>
-                    <div class="flex justify-between px-2">
-                        <div class="color-dot bg-[#6366f1]" data-color="#6366f1"></div>
-                        <div class="color-dot bg-[#ec4899]" data-color="#ec4899"></div>
-                        <div class="color-dot bg-[#10b981]" data-color="#10b981"></div>
-                        <div class="color-dot bg-[#f59e0b]" data-color="#f59e0b"></div>
-                        <div class="color-dot bg-[#3b82f6]" data-color="#3b82f6"></div>
-                    </div>
-                </div>
-
-                <!-- Haptics / Audio -->
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold">Sound FX</span>
-                    <div class="custom-btn px-4 py-2" id="toggle-sound">ON</div>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold">Haptic Vibration</span>
-                    <div class="custom-btn px-4 py-2" id="toggle-haptic">ON</div>
-                </div>
-
-                <!-- Actions -->
-                <div class="pt-4 border-t" style="border-color: var(--card-border);">
-                    <div id="refresh-app-btn" class="custom-btn primary w-full py-3 mb-3">
-                        <i class="fa-solid fa-rotate"></i> Refresh App Data
-                    </div>
-                    <div id="reset-settings-btn" class="custom-btn w-full py-3 text-rose-400">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Reset to Default
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Auth Modal -->
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content depth-card p-8">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 class="text-xl font-bold" id="auth-title">Identify</h3>
-                    <p class="text-xs text-gray-400 mt-1">Secured via SHA-256 Hashing</p>
-                </div>
-                <div id="close-auth-btn" class="custom-btn px-3 py-2 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </div>
-            </div>
-
-            <div class="space-y-4">
-                <input type="text" id="auth-user" class="custom-input" placeholder="Username" autocomplete="off">
-                <input type="password" id="auth-pass" class="custom-input" placeholder="Password" autocomplete="off">
-                
-                <div id="auth-action-btn" class="custom-btn primary w-full py-3 mt-2">
-                    <i class="fa-solid fa-fingerprint"></i> Authenticate
-                </div>
-            </div>
+    <!-- ================= AUTH MODAL ================= -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden">
+        <div class="bg-cardbg border border-bordercolor w-full max-w-md p-8 rounded-2xl shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
             
-            <div class="mt-5 text-center">
-                <span class="text-xs text-gray-500 cursor-pointer hover:text-white transition-colors" id="auth-switch-mode">
-                    New node? Tap to Create Entity
-                </span>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg mb-2 shadow">
+                    <i id="auth-modal-icon" class="fa-solid fa-right-to-bracket"></i>
+                </div>
+                <h3 id="auth-modal-title" class="text-xl font-bold text-white">Welcome Back</h3>
+                <p id="auth-modal-subtitle" class="text-xs text-gray-400 mt-1">Enter your credentials to access your account</p>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Username</label>
+                    <input type="text" id="auth-username" required autocomplete="username" class="w-full px-4 py-3 bg-darkbg border border-bordercolor rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. alex_dev">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
+                    <input type="password" id="auth-password" required autocomplete="current-password" class="w-full px-4 py-3 bg-darkbg border border-bordercolor rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-colors" placeholder="••••••••">
+                </div>
+
+                <div id="auth-error" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl"></div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-600/30 transition-all">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-xs text-gray-400">
+                <span id="auth-switch-text">Don't have an account?</span>
+                <button onclick="toggleAuthMode()" id="auth-switch-btn" class="text-indigo-400 hover:underline font-medium ml-1">Sign up</button>
             </div>
         </div>
     </div>
 
-    <!-- Core Logic & Firebase -->
+    <!-- ================= VIDEO PLAYER MODAL ================= -->
+    <div id="player-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-lg hidden p-4 sm:p-6">
+        <div class="bg-cardbg border border-bordercolor w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-bordercolor bg-darkbg/50">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 id="player-title" class="text-base font-semibold text-white truncate">Video Title</h3>
+                </div>
+                <button onclick="closePlayerModal()" class="text-gray-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="relative aspect-video bg-black flex items-center justify-center">
+                <video id="video-player-element" controls autoplay playsinline class="w-full h-full max-h-[70vh] object-contain">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div class="p-4 sm:p-6 bg-cardbg flex flex-wrap items-center justify-between gap-4 border-t border-bordercolor">
+                <div class="space-y-1">
+                    <p id="player-meta-info" class="text-xs text-gray-400">Uploaded by Anonymous on Jan 01, 2026</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="copyPlayerWatchUrl()" class="px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl border border-bordercolor transition-colors flex items-center space-x-2 shadow">
+                        <i class="fa-solid fa-link text-indigo-400"></i>
+                        <span>Copy Watch Link</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modular Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child, push, onValue, query, orderByChild } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, remove, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // Firebase Configuration provided by user
         const firebaseConfig = {
             apiKey: "AIzaSyDpCAXfhldRc1nCZDWlWNRbcMFjqAh8uPc",
             authDomain: "cloud-db-studio.firebaseapp.com",
@@ -474,489 +283,591 @@
             appId: "1:343326148662:web:987738ccc8f9d6a8253097"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        // --- State Management ---
-        let appState = {
-            user: JSON.parse(localStorage.getItem('sk_user')) || null,
-            settings: JSON.parse(localStorage.getItem('sk_settings')) || {
-                theme: 'glass',
-                accent: '#6366f1',
-                sound: true,
-                haptic: true
-            },
-            view: 'feed', // 'feed' | 'upload'
-            authMode: 'login' // 'login' | 'signup'
-        };
 
-        // --- Audio & Haptics Engine ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function sysSound(type = 'click') {
-            if (!appState.settings.sound) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        // Make Firebase references globally accessible for helper functions
+        window.SK_DB = { db, ref, set, get, child, remove, push, onValue };
+
+        // Initialize Application State on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuthState();
+            loadVideos();
+        });
+    </script>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Global App State
+        let currentUser = JSON.parse(localStorage.getItem('sk_anonmp4_user')) || null;
+        let currentAuthMode = 'login'; // 'login' or 'signup'
+        let selectedFileToUpload = null;
+        let allVideosCache = [];
+        let activeWatchUrl = '';
+
+        // --- Toast Notification System ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
             
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            const bgColors = {
+                success: 'bg-emerald-900/90 border-emerald-500/30 text-emerald-200',
+                error: 'bg-rose-900/90 border-rose-500/30 text-rose-200',
+                info: 'bg-indigo-900/90 border-indigo-500/30 text-indigo-200'
+            };
             
-            if (type === 'click') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.05);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'error') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.2);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
-            }
-        }
+            const icons = {
+                success: 'fa-circle-check text-emerald-400',
+                error: 'fa-circle-exclamation text-rose-400',
+                info: 'fa-circle-info text-indigo-400'
+            };
 
-        function sysVibrate(pattern = 30) {
-            if (appState.settings.haptic && navigator.vibrate) {
-                navigator.vibrate(pattern);
-            }
-        }
-
-        // --- Toasts ---
-        function toast(msg, type = 'info') {
-            const cont = document.getElementById('toast-container');
-            const el = document.createElement('div');
-            el.className = 'custom-toast';
+            toast.className = `pointer-events-auto flex items-center space-x-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-2xl text-sm font-medium transition-all transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.success}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icons[type] || icons.success} text-base"></i>
+                <span class="flex-grow">${message}</span>
+            `;
             
-            let icon = 'fa-info-circle text-blue-400';
-            if(type === 'success') { icon = 'fa-check-circle text-emerald-400'; sysSound('success'); sysVibrate([30,50,30]); }
-            else if(type === 'error') { icon = 'fa-exclamation-triangle text-rose-400'; sysSound('error'); sysVibrate([50,50,50]); }
-            else { sysSound('click'); sysVibrate(20); }
-
-            el.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
-            cont.appendChild(el);
-
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            
             setTimeout(() => {
-                el.classList.add('toast-out');
-                setTimeout(() => el.remove(), 300);
-            }, 2500);
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
 
-        // --- IndexedDB Video Blob Cache ---
-        const IDB_NAME = 'SK-AnonMp4-DB';
-        const STORE = 'videos';
+        // --- Tab Navigation ---
+        function switchTab(tabName) {
+            const feedTab = document.getElementById('tab-feed');
+            const uploadTab = document.getElementById('tab-upload');
+            const navFeed = document.getElementById('nav-feed');
+            const navUpload = document.getElementById('nav-upload');
 
-        function initIDB() {
-            return new Promise((resolve, reject) => {
-                const req = indexedDB.open(IDB_NAME, 1);
-                req.onupgradeneeded = e => {
-                    if (!e.target.result.objectStoreNames.contains(STORE)) {
-                        e.target.result.createObjectStore(STORE, { keyPath: 'id' });
-                    }
-                };
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        async function saveToIDB(id, blob) {
-            const idb = await initIDB();
-            return new Promise((resolve, reject) => {
-                const tx = idb.transaction(STORE, 'readwrite');
-                tx.objectStore(STORE).put({ id, blob, timestamp: Date.now() });
-                tx.oncomplete = resolve;
-                tx.onerror = reject;
-            });
-        }
-
-        async function getFromIDB(id) {
-            const idb = await initIDB();
-            return new Promise((resolve, reject) => {
-                const tx = idb.transaction(STORE, 'readonly');
-                const req = tx.objectStore(STORE).get(id);
-                req.onsuccess = () => resolve(req.result ? req.result.blob : null);
-                req.onerror = reject;
-            });
-        }
-
-        // --- Cryptography (SHA-256) ---
-        async function hashString(str) {
-            const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // --- UI Initialization ---
-        function applySettings() {
-            document.body.className = `theme-${appState.settings.theme}`;
-            document.documentElement.style.setProperty('--accent-color', appState.settings.accent);
-            
-            document.querySelectorAll('.color-dot').forEach(d => {
-                d.classList.toggle('active', d.dataset.color === appState.settings.accent);
-            });
-            
-            document.getElementById('toggle-sound').innerText = appState.settings.sound ? 'ON' : 'OFF';
-            document.getElementById('toggle-sound').classList.toggle('primary', appState.settings.sound);
-            
-            document.getElementById('toggle-haptic').innerText = appState.settings.haptic ? 'ON' : 'OFF';
-            document.getElementById('toggle-haptic').classList.toggle('primary', appState.settings.haptic);
-
-            localStorage.setItem('sk_settings', JSON.stringify(appState.settings));
-        }
-
-        function updateAuthUI() {
-            const authArea = document.getElementById('auth-area');
-            const upBtn = document.getElementById('btn-upload');
-            if (appState.user) {
-                authArea.innerHTML = `
-                    <div class="custom-btn" id="btn-logout" style="border-color: rgba(244, 63, 94, 0.3); color: #f43f5e;">
-                        <i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline">${appState.user}</span>
-                    </div>
-                `;
-                upBtn.classList.remove('hidden');
-                document.getElementById('btn-logout').addEventListener('click', () => {
-                    handleInteraction();
-                    appState.user = null;
-                    localStorage.removeItem('sk_user');
-                    updateAuthUI();
-                    switchView('feed');
-                    toast('Entity disconnected.', 'info');
-                });
-            } else {
-                authArea.innerHTML = `
-                    <div class="custom-btn primary" id="btn-login">
-                        <i class="fa-solid fa-fingerprint"></i> <span class="hidden sm:inline">Identify</span>
-                    </div>
-                `;
-                upBtn.classList.add('hidden');
-                document.getElementById('btn-login').addEventListener('click', () => {
-                    handleInteraction();
-                    openModal('auth-modal');
-                });
-            }
-        }
-
-        function switchView(view) {
-            appState.view = view;
-            document.getElementById('main-feed').classList.toggle('hidden', view !== 'feed');
-            document.getElementById('upload-view').classList.toggle('hidden', view !== 'upload');
-            if(view === 'feed') fetchFeed();
-        }
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // Helper to bind Custom Div buttons safely
-        function handleInteraction() { sysSound('click'); sysVibrate(20); }
-
-        // --- Core Interactions Setup ---
-        document.getElementById('nav-home-btn').addEventListener('click', () => {
-            handleInteraction();
-            switchView('feed');
-        });
-
-        document.getElementById('btn-upload').addEventListener('click', () => {
-            handleInteraction();
-            switchView('upload');
-        });
-
-        document.getElementById('btn-settings').addEventListener('click', () => {
-            handleInteraction();
-            openModal('settings-modal');
-        });
-
-        document.querySelectorAll('.modal-overlay').forEach(mod => {
-            mod.addEventListener('click', e => {
-                if (e.target === mod && mod.id !== 'player-modal') { // prevent closing player accidentally
-                    closeModal(mod.id);
-                }
-            });
-        });
-
-        document.getElementById('close-settings-btn').addEventListener('click', () => { handleInteraction(); closeModal('settings-modal'); });
-        document.getElementById('close-auth-btn').addEventListener('click', () => { handleInteraction(); closeModal('auth-modal'); });
-        document.getElementById('close-player-btn').addEventListener('click', () => { 
-            handleInteraction(); 
-            const vid = document.getElementById('secure-video');
-            vid.pause();
-            vid.src = '';
-            closeModal('player-modal'); 
-        });
-
-        // Settings Toggles
-        document.getElementById('theme-glass-btn').addEventListener('click', () => { handleInteraction(); appState.settings.theme = 'glass'; applySettings(); });
-        document.getElementById('theme-neu-btn').addEventListener('click', () => { handleInteraction(); appState.settings.theme = 'neu'; applySettings(); });
-        
-        document.querySelectorAll('.color-dot').forEach(dot => {
-            dot.addEventListener('click', (e) => {
-                handleInteraction();
-                appState.settings.accent = e.target.dataset.color;
-                applySettings();
-            });
-        });
-
-        document.getElementById('toggle-sound').addEventListener('click', () => {
-            handleInteraction();
-            appState.settings.sound = !appState.settings.sound;
-            applySettings();
-        });
-        document.getElementById('toggle-haptic').addEventListener('click', () => {
-            handleInteraction();
-            appState.settings.haptic = !appState.settings.haptic;
-            applySettings();
-        });
-
-        document.getElementById('refresh-app-btn').addEventListener('click', () => {
-            handleInteraction();
-            toast('Rebuilding data nodes...', 'info');
-            setTimeout(() => window.location.reload(), 800);
-        });
-        document.getElementById('reset-settings-btn').addEventListener('click', () => {
-            handleInteraction();
-            localStorage.removeItem('sk_settings');
-            window.location.reload();
-        });
-
-        // --- Auth Logic ---
-        document.getElementById('auth-switch-mode').addEventListener('click', () => {
-            handleInteraction();
-            appState.authMode = appState.authMode === 'login' ? 'signup' : 'login';
-            document.getElementById('auth-title').innerText = appState.authMode === 'login' ? 'Identify' : 'Create Entity';
-            document.getElementById('auth-switch-mode').innerText = appState.authMode === 'login' ? 'New node? Tap to Create Entity' : 'Existing node? Tap to Identify';
-        });
-
-        document.getElementById('auth-action-btn').addEventListener('click', async () => {
-            handleInteraction();
-            const u = document.getElementById('auth-user').value.trim();
-            const p = document.getElementById('auth-pass').value;
-            
-            if (!u || !p) { toast('Credentials required.', 'error'); return; }
-            
-            const btn = document.getElementById('auth-action-btn');
-            btn.style.opacity = '0.5';
-            btn.style.pointerEvents = 'none';
-
-            try {
-                const hash = await hashString(p);
-                const userRef = child(ref(db), `SK-AnonMP4/users/${u}`);
-                const snap = await get(userRef);
-
-                if (appState.authMode === 'signup') {
-                    if (snap.exists()) throw new Error('Entity already exists.');
-                    await set(ref(db, `SK-AnonMP4/users/${u}`), { hash, created: Date.now() });
-                    toast('Entity creation successful.', 'success');
-                } else {
-                    if (!snap.exists()) throw new Error('Entity not found.');
-                    if (snap.val().hash !== hash) throw new Error('Invalid signature.');
-                    toast('Identity confirmed.', 'success');
-                }
-
-                appState.user = u;
-                localStorage.setItem('sk_user', JSON.stringify(u));
-                updateAuthUI();
-                closeModal('auth-modal');
-                document.getElementById('auth-user').value = '';
-                document.getElementById('auth-pass').value = '';
-                
-            } catch (e) {
-                toast(e.message, 'error');
-            } finally {
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
-            }
-        });
-
-        // --- Upload Logic ---
-        let pendingFile = null;
-        
-        document.getElementById('video-file-input').addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleInteraction();
-                pendingFile = e.target.files[0];
-                document.getElementById('drop-prompt').classList.add('hidden');
-                document.getElementById('drop-selected').classList.remove('hidden');
-                document.getElementById('selected-filename').innerText = pendingFile.name;
-            }
-        });
-
-        async function genThumbnail(file) {
-            return new Promise((resolve) => {
-                const v = document.createElement('video');
-                const canvas = document.createElement('canvas');
-                const url = URL.createObjectURL(file);
-                v.src = url;
-                v.muted = true;
-                v.playsInline = true;
-                v.onloadeddata = () => {
-                    v.currentTime = 1;
-                };
-                v.onseeked = () => {
-                    canvas.width = 640; canvas.height = 360;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6));
-                    URL.revokeObjectURL(url);
-                };
-                v.onerror = () => resolve('https://placehold.co/640x360/111827/6366f1?text=Encrypted');
-            });
-        }
-
-        document.getElementById('upload-action-btn').addEventListener('click', async () => {
-            handleInteraction();
-            if (!pendingFile) { toast('Insert video data packet.', 'error'); return; }
-            if (!appState.user) { toast('Identification required.', 'error'); return; }
-
-            const btn = document.getElementById('upload-action-btn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
-            btn.style.pointerEvents = 'none';
-
-            try {
-                // 1. Generate unique ID & Thumbnail
-                const vidId = 'sk_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-                const title = document.getElementById('upload-title').value.trim() || pendingFile.name;
-                
-                toast('Generating visual signature...', 'info');
-                const thumb = await genThumbnail(pendingFile);
-                
-                toast('Caching securely to Local IDB...', 'info');
-                // 2. Save actual Blob to IDB
-                await saveToIDB(vidId, pendingFile);
-
-                toast('Syncing metadata to RTDB Node...', 'info');
-                // 3. Save Metadata to Firebase
-                const meta = {
-                    id: vidId,
-                    title: title,
-                    uploader: appState.user,
-                    thumbnail: thumb,
-                    timestamp: Date.now(),
-                    size: pendingFile.size
-                };
-                
-                await push(ref(db, 'SK-AnonMP4/videos'), meta);
-
-                toast('Upload Sequence Complete.', 'success');
-                
-                // Reset form
-                pendingFile = null;
-                document.getElementById('drop-prompt').classList.remove('hidden');
-                document.getElementById('drop-selected').classList.add('hidden');
-                document.getElementById('upload-title').value = '';
-                document.getElementById('video-file-input').value = '';
-                
-                switchView('feed');
-
-            } catch(e) {
-                console.error(e);
-                toast('Sequence Failure.', 'error');
-            } finally {
-                btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Encode & Sync`;
-                btn.style.pointerEvents = 'auto';
-            }
-        });
-
-        // --- Feed Logic ---
-        function fetchFeed() {
-            const grid = document.getElementById('videos-grid');
-            const empty = document.getElementById('empty-state');
-            
-            onValue(ref(db, 'SK-AnonMP4/videos'), (snap) => {
-                const data = snap.val();
-                grid.innerHTML = '';
-                
-                if (!data) {
-                    empty.classList.remove('hidden');
+            if (tabName === 'feed') {
+                feedTab.classList.remove('hidden');
+                uploadTab.classList.add('hidden');
+                navFeed.classList.add('bg-gray-800', 'text-white');
+                navFeed.classList.remove('text-gray-300');
+                navUpload.classList.remove('bg-gray-800', 'text-white');
+                navUpload.classList.add('text-gray-300');
+            } else if (tabName === 'upload') {
+                if (!currentUser) {
+                    showToast('Please sign in to upload videos', 'info');
+                    openAuthModal('login');
                     return;
                 }
-                
-                empty.classList.add('hidden');
-                const vids = Object.values(data).sort((a,b) => b.timestamp - a.timestamp);
-
-                vids.forEach(v => {
-                    const card = document.createElement('div');
-                    card.className = 'depth-card overflow-hidden flex flex-col group cursor-pointer';
-                    
-                    card.innerHTML = `
-                        <div class="relative aspect-video bg-black overflow-hidden">
-                            <img src="${v.thumbnail}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500">
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white" style="background: var(--accent-color); box-shadow: 0 0 20px var(--accent-color);">
-                                    <i class="fa-solid fa-play ml-1"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="p-4 flex-grow flex flex-col justify-between">
-                            <h3 class="font-bold text-sm line-clamp-2">${v.title}</h3>
-                            <div class="flex items-center justify-between text-xs text-gray-500 mt-3">
-                                <span><i class="fa-solid fa-user-shield text-[10px]" style="color: var(--accent-color);"></i> ${v.uploader}</span>
-                                <span>${new Date(v.timestamp).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    `;
-
-                    // Handle Play
-                    card.addEventListener('click', () => playVideo(v));
-                    grid.appendChild(card);
-                });
-            });
-        }
-
-        async function playVideo(vData) {
-            handleInteraction();
-            openModal('player-modal');
-            document.getElementById('player-title').innerText = vData.title;
-            document.getElementById('player-uploader').innerHTML = `<i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Origin: ${vData.uploader}`;
-            
-            const vElement = document.getElementById('secure-video');
-            const loader = document.getElementById('player-loader');
-            
-            vElement.classList.add('hidden');
-            loader.classList.remove('hidden');
-
-            try {
-                // Fetch blob from IDB
-                const blob = await getFromIDB(vData.id);
-                if (!blob) throw new Error('Blob missing from local cache.');
-
-                const url = URL.createObjectURL(blob);
-                vElement.src = url;
-                
-                vElement.onloadeddata = () => {
-                    loader.classList.add('hidden');
-                    vElement.classList.remove('hidden');
-                    vElement.play().catch(() => toast('Tap play to start.', 'info'));
-                };
-
-                // Cleanup URL when done to prevent memory leaks, handled implicitly on new load
-            } catch (e) {
-                console.error(e);
-                loader.classList.add('hidden');
-                toast('Video not available in local cache. Original uploader node required.', 'error');
-                closeModal('player-modal');
+                feedTab.classList.add('hidden');
+                uploadTab.classList.remove('hidden');
+                navUpload.classList.add('bg-gray-800', 'text-white');
+                navUpload.classList.remove('text-gray-300');
+                navFeed.classList.remove('bg-gray-800', 'text-white');
+                navFeed.classList.add('text-gray-300');
             }
         }
 
-        // Init App
-        applySettings();
-        updateAuthUI();
-        fetchFeed();
+        // --- Authentication UI State & Modals ---
+        function initAuthState() {
+            const authNavArea = document.getElementById('auth-nav-area');
+            if (currentUser) {
+                authNavArea.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="hidden sm:flex items-center space-x-2 bg-gray-800/60 border border-bordercolor px-3 py-1.5 rounded-xl shadow">
+                            <div class="w-6 h-6 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xs font-bold">
+                                ${currentUser.username.charAt(0).toUpperCase()}
+                            </div>
+                            <span class="text-xs font-medium text-gray-200">${currentUser.username}</span>
+                        </div>
+                        <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs font-medium transition-colors flex items-center space-x-1.5 shadow">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                authNavArea.innerHTML = `
+                    <button onclick="openAuthModal('login')" class="px-3.5 py-2 text-xs font-medium text-gray-300 hover:text-white transition-colors">
+                        Sign In
+                    </button>
+                    <button onclick="openAuthModal('signup')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-xl shadow-lg shadow-indigo-600/30 transition-all">
+                        Sign Up
+                    </button>
+                `;
+            }
+        }
 
+        function openAuthModal(mode) {
+            currentAuthMode = mode;
+            const modal = document.getElementById('auth-modal');
+            const title = document.getElementById('auth-modal-title');
+            const subtitle = document.getElementById('auth-modal-subtitle');
+            const icon = document.getElementById('auth-modal-icon');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchBtn = document.getElementById('auth-switch-btn');
+            const errDiv = document.getElementById('auth-error');
+
+            errDiv.classList.add('hidden');
+            document.getElementById('auth-form').reset();
+
+            if (mode === 'login') {
+                title.innerText = 'Welcome Back';
+                subtitle.innerText = 'Enter your credentials to access your account';
+                icon.className = 'fa-solid fa-right-to-bracket';
+                submitBtn.innerText = 'Sign In';
+                switchText.innerText = "Don't have an account?";
+                switchBtn.innerText = 'Sign up';
+            } else {
+                title.innerText = 'Create Account';
+                subtitle.innerText = 'Register securely with SHA-256 hashed password protection';
+                icon.className = 'fa-solid fa-user-plus';
+                submitBtn.innerText = 'Create Account';
+                switchText.innerText = 'Already have an account?';
+                switchBtn.innerText = 'Sign in';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            openAuthModal(currentAuthMode === 'login' ? 'signup' : 'login');
+        }
+
+        // --- Password Hashing with Web Crypto API (SHA-256) ---
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- Authentication Actions (RTDB under SK-AnonMP4/users) ---
+        async function handleAuthSubmit(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('auth-username').value.trim();
+            const passwordInput = document.getElementById('auth-password').value;
+            const errDiv = document.getElementById('auth-error');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            if (!usernameInput || !passwordInput) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Processing...`;
+            errDiv.classList.add('hidden');
+
+            try {
+                const { db, ref, get, set, child } = window.SK_DB;
+                const dbRef = ref(db);
+                const userSnapshot = await get(child(dbRef, `SK-AnonMP4/users/${usernameInput}`));
+                const passwordHash = await hashPassword(passwordInput);
+
+                if (currentAuthMode === 'signup') {
+                    if (userSnapshot.exists()) {
+                        throw new Error('Username already exists. Please choose another or sign in.');
+                    }
+                    const newUser = {
+                        username: usernameInput,
+                        passwordHash: passwordHash,
+                        createdAt: new Date().toISOString()
+                    };
+                    await set(ref(db, `SK-AnonMP4/users/${usernameInput}`), newUser);
+                    currentUser = { username: usernameInput };
+                    localStorage.setItem('sk_anonmp4_user', JSON.stringify(currentUser));
+                    showToast('Account created successfully!', 'success');
+                } else {
+                    if (!userSnapshot.exists()) {
+                        throw new Error('User not found. Please check your username or sign up.');
+                    }
+                    const userData = userSnapshot.val();
+                    if (userData.passwordHash !== passwordHash) {
+                        throw new Error('Incorrect password. Please try again.');
+                    }
+                    currentUser = { username: usernameInput };
+                    localStorage.setItem('sk_anonmp4_user', JSON.stringify(currentUser));
+                    showToast(`Welcome back, ${usernameInput}!`, 'success');
+                }
+
+                closeAuthModal();
+                initAuthState();
+            } catch (err) {
+                errDiv.innerText = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = currentAuthMode === 'login' ? 'Sign In' : 'Create Account';
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('sk_anonmp4_user');
+            initAuthState();
+            showToast('Logged out successfully', 'info');
+            loadVideos();
+        }
+
+        // --- Video File Selection & Thumbnail Generation via Canvas ---
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                selectedFileToUpload = input.files[0];
+                document.getElementById('drop-zone-prompt').classList.add('hidden');
+                document.getElementById('file-selected-info').classList.remove('hidden');
+                document.getElementById('selected-file-name').innerText = selectedFileToUpload.name;
+                
+                const sizeMB = (selectedFileToUpload.size / (1024 * 1024)).toFixed(2);
+                document.getElementById('selected-file-size').innerText = `${sizeMB} MB`;
+            }
+        }
+
+        function clearSelectedFile(event) {
+            event.stopPropagation();
+            selectedFileToUpload = null;
+            document.getElementById('video-file-input').value = '';
+            document.getElementById('file-selected-info').classList.add('hidden');
+            document.getElementById('drop-zone-prompt').classList.remove('hidden');
+        }
+
+        // Generate thumbnail data URL using a hidden video element and canvas
+        async function generateThumbnail(file) {
+            return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.muted = true;
+                video.playsInline = true;
+                
+                const objectUrl = URL.createObjectURL(file);
+                video.src = objectUrl;
+
+                video.onloadeddata = () => {
+                    video.currentTime = Math.min(1.0, video.duration / 4);
+                };
+
+                video.onseeked = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 640;
+                        canvas.height = 360;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        URL.revokeObjectURL(objectUrl);
+                        resolve(dataUrl);
+                    } catch (e) {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve(`https://placehold.co/640x360/111827/6366f1?text=${encodeURIComponent(file.name.substring(0, 18))}`);
+                    }
+                };
+
+                video.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(`https://placehold.co/640x360/111827/6366f1?text=${encodeURIComponent(file.name.substring(0, 18))}`);
+                };
+            });
+        }
+
+        // --- Upload Handling with Local Blob Engine & Firebase RTDB Sync (`SK-AnonMP4/videos`) ---
+        async function handleUpload(event) {
+            event.preventDefault();
+            if (!selectedFileToUpload) {
+                showToast('Please select a video file to upload', 'error');
+                return;
+            }
+
+            const customTitle = document.getElementById('custom-title-input').value.trim() || selectedFileToUpload.name;
+            const submitBtn = document.getElementById('upload-submit-btn');
+            const progressContainer = document.getElementById('upload-progress-container');
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressPercentText = document.getElementById('progress-percent-text');
+            const progressStatusText = document.getElementById('progress-status-text');
+
+            submitBtn.disabled = true;
+            progressContainer.classList.remove('hidden');
+            progressBarFill.style.width = '15%';
+            progressPercentText.innerText = '15%';
+            progressStatusText.innerText = 'Generating local video blob URL...';
+
+            try {
+                // 1. Create local Blob URL for robust in-app streaming
+                const localBlobUrl = URL.createObjectURL(selectedFileToUpload);
+                
+                progressBarFill.style.width = '45%';
+                progressPercentText.innerText = '45%';
+                progressStatusText.innerText = 'Extracting video thumbnail via canvas...';
+
+                // 2. Generate video thumbnail
+                const thumbnailDataUrl = await generateThumbnail(selectedFileToUpload);
+
+                progressBarFill.style.width = '80%';
+                progressPercentText.innerText = '80%';
+                progressStatusText.innerText = 'Syncing record to Firebase RTDB (SK-AnonMP4)...';
+
+                const randomId = 'vid_' + Math.random().toString(36).substring(2, 11);
+
+                const videoRecord = {
+                    video_id: randomId,
+                    title: customTitle,
+                    watch_url: localBlobUrl,
+                    thumbnail: thumbnailDataUrl,
+                    upload_date: new Date().toISOString(),
+                    uploader: currentUser ? currentUser.username : 'Anonymous',
+                    fileSize: selectedFileToUpload.size
+                };
+
+                // 3. Save to Firebase Realtime Database under SK-AnonMP4/videos
+                const { db, ref, push, set } = window.SK_DB;
+                const videosRef = ref(db, 'SK-AnonMP4/videos');
+                const newVideoRef = push(videosRef);
+                await set(newVideoRef, videoRecord);
+
+                progressBarFill.style.width = '100%';
+                progressPercentText.innerText = '100%';
+                progressStatusText.innerText = 'Upload successful!';
+
+                showToast('Video uploaded and synced successfully!', 'success');
+                document.getElementById('upload-form').reset();
+                selectedFileToUpload = null;
+                document.getElementById('file-selected-info').classList.add('hidden');
+                document.getElementById('drop-zone-prompt').classList.remove('hidden');
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    progressBarFill.style.width = '0%';
+                    switchTab('feed');
+                }, 600);
+
+            } catch (err) {
+                console.error('Upload Error:', err);
+                showToast(`Upload failed: ${err.message}`, 'error');
+                progressContainer.classList.add('hidden');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // --- Load & Render Videos Feed from RTDB (`SK-AnonMP4/videos`) ---
+        function loadVideos() {
+            const grid = document.getElementById('videos-grid');
+            const emptyFeed = document.getElementById('empty-feed');
+            const badge = document.getElementById('video-count-badge');
+
+            grid.innerHTML = `
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse hidden sm:block shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+                <div class="bg-cardbg border border-bordercolor rounded-2xl overflow-hidden animate-pulse hidden lg:block shadow-lg">
+                    <div class="aspect-video bg-gray-800"></div>
+                    <div class="p-5 space-y-3">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const { db, ref, onValue } = window.SK_DB;
+                const videosRef = ref(db, 'SK-AnonMP4/videos');
+
+                onValue(videosRef, (snapshot) => {
+                    const data = snapshot.val();
+                    allVideosCache = [];
+
+                    if (data) {
+                        Object.keys(data).forEach(key => {
+                            allVideosCache.push({
+                                firebaseKey: key,
+                                ...data[key]
+                            });
+                        });
+                        // Sort newest first
+                        allVideosCache.reverse();
+                    }
+
+                    renderVideos(allVideosCache);
+                }, (error) => {
+                    console.error('Error fetching videos:', error);
+                    showToast('Failed to load video feed from database', 'error');
+                    grid.innerHTML = '';
+                    emptyFeed.classList.remove('hidden');
+                    badge.innerText = '0 videos';
+                });
+            } catch (err) {
+                console.error(err);
+                grid.innerHTML = '';
+                emptyFeed.classList.remove('hidden');
+                badge.innerText = '0 videos';
+            }
+        }
+
+        function renderVideos(videos) {
+            const grid = document.getElementById('videos-grid');
+            const emptyFeed = document.getElementById('empty-feed');
+            const badge = document.getElementById('video-count-badge');
+
+            badge.innerText = `${videos.length} video${videos.length === 1 ? '' : 's'}`;
+
+            if (videos.length === 0) {
+                grid.innerHTML = '';
+                emptyFeed.classList.remove('hidden');
+                return;
+            }
+
+            emptyFeed.classList.add('hidden');
+            grid.innerHTML = '';
+
+            videos.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'bg-cardbg border border-bordercolor rounded-2xl overflow-hidden shadow-xl hover:border-indigo-500/50 transition-all flex flex-col group';
+                
+                const formattedDate = video.upload_date ? new Date(video.upload_date).toLocaleDateString(undefined, {
+                    month: 'short', day: 'numeric', year: 'numeric'
+                }) : 'Recently';
+
+                const isUploader = currentUser && currentUser.username === video.uploader;
+
+                card.innerHTML = `
+                    <div class="relative aspect-video bg-darkbg overflow-hidden cursor-pointer" onclick="openPlayerModal('${encodeURIComponent(JSON.stringify(video))}')">
+                        <img src="${video.thumbnail || 'https://placehold.co/640x360/111827/6366f1?text=SK+AnonMp4'}" alt="${video.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://placehold.co/640x360/111827/6366f1?text=SK+AnonMp4'">
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/50 transform scale-90 group-hover:scale-100 transition-transform">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </div>
+                        </div>
+                        <span class="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/70 backdrop-blur-md text-[10px] font-semibold text-white">
+                            SK-AnonMp4
+                        </span>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-white text-base line-clamp-1 hover:text-indigo-400 cursor-pointer transition-colors" title="${video.title}" onclick="openPlayerModal('${encodeURIComponent(JSON.stringify(video))}')">
+                                ${video.title}
+                            </h3>
+                            <div class="flex items-center justify-between text-xs text-gray-400 mt-2">
+                                <span class="flex items-center space-x-1">
+                                    <i class="fa-solid fa-user text-[10px] text-indigo-400"></i>
+                                    <span>${video.uploader || 'Anonymous'}</span>
+                                </span>
+                                <span>${formattedDate}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-3 border-t border-bordercolor/60 gap-2">
+                            <button onclick="copyToClipboard('${video.watch_url}')" class="flex-1 py-2 px-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-xl border border-bordercolor transition-colors flex items-center justify-center space-x-1.5 shadow">
+                                <i class="fa-solid fa-link text-indigo-400"></i>
+                                <span>Copy Link</span>
+                            </button>
+                            ${isUploader ? `
+                                <button onclick="deleteVideo('${video.firebaseKey}')" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-xl text-xs transition-colors shadow" title="Delete Video">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterVideos() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allVideosCache.filter(v => v.title.toLowerCase().includes(query) || (v.uploader && v.uploader.toLowerCase().includes(query)));
+            renderVideos(filtered);
+        }
+
+        function copyToClipboard(text) {
+            if (!text || text === '#') {
+                showToast('No valid URL to copy', 'error');
+                return;
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Watch link copied to clipboard!', 'success');
+                }).catch(() => {
+                    fallbackCopyText(text);
+                });
+            } else {
+                fallbackCopyText(text);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Watch link copied to clipboard!', 'success');
+            } catch (err) {
+                showToast('Failed to copy link', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        async function deleteVideo(firebaseKey) {
+            if (!confirm('Are you sure you want to delete this video record?')) return;
+            try {
+                const { db, ref, remove } = window.SK_DB;
+                await remove(ref(db, `SK-AnonMP4/videos/${firebaseKey}`));
+                showToast('Video record deleted successfully', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to delete video record', 'error');
+            }
+        }
+
+        // --- In-App Seamless Video Player Modal Functions (NO New Tabs) ---
+        function openPlayerModal(encodedVideoJson) {
+            const video = JSON.parse(decodeURIComponent(encodedVideoJson));
+            const modal = document.getElementById('player-modal');
+            const titleElem = document.getElementById('player-title');
+            const videoElem = document.getElementById('video-player-element');
+            const metaInfo = document.getElementById('player-meta-info');
+
+            titleElem.innerText = video.title;
+            activeWatchUrl = video.watch_url;
+            metaInfo.innerText = `Uploaded by ${video.uploader || 'Anonymous'} on ${new Date(video.upload_date).toLocaleDateString()}`;
+
+            modal.classList.remove('hidden');
+
+            // Play video directly inside modal using HTML5 player element
+            videoElem.src = video.watch_url;
+            videoElem.load();
+            videoElem.play().catch(e => {
+                console.log('Autoplay prevented by browser policy:', e);
+                showToast('Click play on the video player to start streaming', 'info');
+            });
+        }
+
+        function closePlayerModal() {
+            const modal = document.getElementById('player-modal');
+            const videoElem = document.getElementById('video-player-element');
+            videoElem.pause();
+            videoElem.src = '';
+            modal.classList.add('hidden');
+        }
+
+        function copyPlayerWatchUrl() {
+            copyToClipboard(activeWatchUrl);
+        }
     </script>
 </body>
 </html>
