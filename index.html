@@ -77,6 +77,7 @@
             -webkit-user-select: auto;
         }
 
+        /* Strict UI Constraints */
         html, body {
             margin: 0;
             padding: 0;
@@ -84,6 +85,7 @@
             height: 100vh;
             overflow: hidden;
             overscroll-behavior: none; /* Prevents pull-to-refresh */
+            touch-action: none; /* Prevents pinch-to-zoom */
             font-family: var(--font-main);
             color: var(--text-main);
             background-color: #0b0f19;
@@ -215,6 +217,7 @@
         /* === Scrollable Areas === */
         .scroller {
             flex: 1; overflow-y: auto; overflow-x: hidden;
+            touch-action: pan-y; /* Only allow vertical scrolling */
             padding-bottom: calc(var(--foot-height) + 20px);
             scrollbar-width: none; /* Firefox */
         }
@@ -286,7 +289,9 @@
             transform: scale(0.9) translateY(20px);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             padding: 32px; scrollbar-width: none;
+            touch-action: pan-y; /* Allow scrolling inside modals */
         }
+        .modal-box::-webkit-scrollbar { display: none; }
         .modal-backdrop.active .modal-box { transform: scale(1) translateY(0); }
         .modal-player-box { max-width: 1000px; padding: 0; overflow: hidden; }
 
@@ -334,6 +339,7 @@
             font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
             color: var(--text-muted); text-transform: uppercase; z-index: 40;
             background: linear-gradient(to top, var(--bg-color) 40%, transparent);
+            pointer-events: none;
         }
     </style>
 </head>
@@ -357,12 +363,11 @@
             </div>
             
             <div class="flex items-center gap-3">
-                <div id="btn-refresh" class="sk-btn hidden sm:flex !p-3" title="Refresh Feed">
-                    <i class="fa-solid fa-rotate-right"></i>
-                </div>
+                <!-- Upload button visible to authenticated users -->
                 <div id="btn-upload-nav" class="sk-btn hidden sm:flex">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Upload
                 </div>
+                <!-- Settings button (contains the refresh now) -->
                 <div id="btn-settings" class="sk-btn !p-3">
                     <i class="fa-solid fa-gear"></i>
                 </div>
@@ -438,7 +443,7 @@
         </main>
 
         <footer class="footer">
-            © 2026 Sanchar Koirala | All Rights Reserved
+            © 2026 Sanchar Koirala | All rights reserved.
         </footer>
     </div>
 
@@ -518,8 +523,11 @@
                     </div>
                 </div>
 
-                <!-- Reset -->
+                <!-- App Controls -->
                 <div class="pt-6 border-t" style="border-color: var(--surface-border);">
+                    <div id="btn-hard-refresh" class="sk-btn sk-btn-primary w-full py-4 mb-4">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh App Content
+                    </div>
                     <div id="btn-reset-app" class="sk-btn sk-btn-danger w-full py-4">
                         <i class="fa-solid fa-skull"></i> Reset All Settings
                     </div>
@@ -806,7 +814,7 @@
             }
         });
 
-        // --- Upload Logic ---
+        // --- Upload Logic (Dual-Layer Fetch for CORS Resiliency) ---
         const fInput = document.getElementById('file-input');
         
         fInput.addEventListener('change', (e) => {
@@ -832,7 +840,26 @@
                 const fd = new FormData();
                 fd.append('file', state.uploadFile);
 
-                const res = await fetch('https://anonmp4api.xyz/upload', { method: 'POST', body: fd });
+                let res;
+                // Layer 1: Direct Fetch (No custom headers to avoid preflight issues)
+                try {
+                    res = await fetch('https://anonmp4api.xyz/upload', { 
+                        method: 'POST', 
+                        body: fd
+                    });
+                    if (!res.ok) throw new Error('Direct fetch HTTP error');
+                } catch (fetchErr) {
+                    console.warn("Direct upload blocked (CORS/Network), engaging proxy fallback...", fetchErr);
+                    showToast('Direct link blocked, routing via proxy...', 'info');
+                    
+                    // Layer 2: CORS Proxy Fallback
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://anonmp4api.xyz/upload');
+                    res = await fetch(proxyUrl, {
+                        method: 'POST',
+                        body: fd
+                    });
+                }
+
                 const apiData = await res.json();
                 
                 if (!apiData.success) throw new Error(apiData.error?.message || 'Transmission failed.');
@@ -864,6 +891,7 @@
                 
                 switchView('feed');
             } catch (err) {
+                console.error(err);
                 showToast(err.message, 'error');
             } finally {
                 btn.innerHTML = ogHtml;
@@ -979,9 +1007,10 @@
         document.getElementById('btn-upload-mobile').addEventListener('click', () => switchView('upload'));
         document.getElementById('btn-close-upload').addEventListener('click', () => switchView('feed'));
         document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
-        document.getElementById('btn-refresh').addEventListener('click', () => {
-            showToast('Re-syncing with void...', 'info');
-            fetchVideos();
+        
+        // Inside Settings Modal
+        document.getElementById('btn-hard-refresh').addEventListener('click', () => {
+            window.location.reload();
         });
 
         // Settings actions
