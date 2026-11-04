@@ -8,6 +8,44 @@
     <title>SK AnonMp4</title>
     <link rel="icon" type="image/png" href="favicon.png">
     
+    <!-- Security: DevTools & Right-Click Trap (Zero Delay) -->
+    <script>
+        (function blockDevTools() {
+            const trapURL = 'https://youtu.be/dQw4w9WgXcQ';
+            let trapSprung = false;
+
+            function springTrap() {
+                if (trapSprung) return;
+                trapSprung = true;
+                window.location.replace(trapURL);
+            }
+
+            // Block Right Click
+            document.addEventListener('contextmenu', e => e.preventDefault(), { capture: true });
+
+            // Block Shortcuts
+            document.addEventListener('keydown', e => {
+                const key = e.key ? e.key.toLowerCase() : '';
+                if (key === 'f12' || 
+                   (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(key)) || 
+                   (e.ctrlKey && key === 'u')) {
+                    e.preventDefault();
+                    springTrap();
+                }
+            }, { capture: true });
+
+            // Debugger Loop Trap
+            setInterval(() => {
+                const start = performance.now();
+                debugger;
+                const end = performance.now();
+                if (end - start > 150) { // If paused in debugger, diff will be large
+                    springTrap();
+                }
+            }, 1000);
+        })();
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -16,23 +54,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* === Strict Layout & Security Constraints === */
+        /* === Core Layout & Anti-Jank constraints === */
         :root {
-            --bg-color: #0f172a;
-            --accent-color: #6366f1;
+            --accent: #6366f1;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --navbar-height: 70px;
-            --footer-height: 50px;
+            --font-main: 'Inter', sans-serif;
+            --nav-height: 72px;
+            --foot-height: 50px;
         }
 
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            user-select: none; /* Prevent text selection */
+            user-select: none;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            outline: none;
+        }
+
+        input {
+            user-select: auto;
+            -webkit-user-select: auto;
         }
 
         html, body {
@@ -40,477 +82,487 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            overflow: hidden; /* Absolute prevention of pull-to-refresh & shifting */
-            overscroll-behavior: none;
-            background-color: var(--bg-color);
+            overflow: hidden;
+            overscroll-behavior: none; /* Prevents pull-to-refresh */
+            font-family: var(--font-main);
             color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.4s ease;
+            background-color: #0b0f19;
+            transition: background-color 0.5s ease;
         }
 
-        /* Input fields need selection */
-        input {
-            user-select: auto;
-            -webkit-user-select: auto;
-        }
-
-        /* === Theming Engine === */
+        /* === Theming Engine: Variables === */
+        
+        /* Theme: Glassmorphism */
         body.theme-glass {
-            --card-bg: rgba(15, 23, 42, 0.45);
-            --card-border: rgba(255, 255, 255, 0.12);
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-            --card-backdrop: blur(24px);
-            --btn-bg: rgba(255, 255, 255, 0.08);
-            --btn-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            --btn-active: rgba(255, 255, 255, 0.15);
+            --bg-color: #050505;
+            --surface-bg: rgba(20, 20, 25, 0.4);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --surface-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --surface-blur: blur(24px);
+            
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-border: rgba(255, 255, 255, 0.1);
+            --btn-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            --btn-active-bg: rgba(255, 255, 255, 0.1);
+            --btn-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --input-border: rgba(255, 255, 255, 0.15);
         }
 
+        /* Theme: Neumorphism */
         body.theme-neu {
-            --card-bg: var(--bg-color);
-            --card-border: transparent;
-            --card-shadow: 10px 10px 20px #090e19, -10px -10px 20px #15203b;
-            --card-backdrop: none;
-            --btn-bg: var(--bg-color);
-            --btn-shadow: 6px 6px 12px #090e19, -6px -6px 12px #15203b;
-            --btn-active-shadow: inset 5px 5px 10px #090e19, inset -5px -5px 10px #15203b;
+            --bg-color: #1a1e29;
+            --surface-bg: #1a1e29;
+            --surface-border: transparent;
+            --surface-shadow: 8px 8px 16px #12151d, -8px -8px 16px #222735;
+            --surface-blur: none;
+            
+            --btn-bg: #1a1e29;
+            --btn-border: transparent;
+            --btn-shadow: 5px 5px 10px #12151d, -5px -5px 10px #222735;
+            --btn-active-bg: #1a1e29;
+            --btn-active-shadow: inset 4px 4px 8px #12151d, inset -4px -4px 8px #222735;
+            
+            --input-bg: #1a1e29;
+            --input-border: transparent;
+            --input-shadow: inset 5px 5px 10px #12151d, inset -5px -5px 10px #222735;
         }
 
-        .depth-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            box-shadow: var(--card-shadow);
-            backdrop-filter: var(--card-backdrop);
-            -webkit-backdrop-filter: var(--card-backdrop);
-            border-radius: 20px;
-            transition: all 0.3s ease;
+        body { background-color: var(--bg-color); }
+
+        /* === Dynamic Background Orbs (Glass Only) === */
+        .bg-orbs {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none; overflow: hidden;
+            display: none; opacity: 0.6;
+        }
+        body.theme-glass .bg-orbs { display: block; }
+        
+        .orb {
+            position: absolute; border-radius: 50%;
+            filter: blur(80px); animation: float 20s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -100px; left: -100px; opacity: 0.4; }
+        .orb-2 { width: 500px; height: 500px; background: #9333ea; bottom: -200px; right: -100px; opacity: 0.3; animation-delay: -5s; }
+        .orb-3 { width: 300px; height: 300px; background: #ec4899; top: 40%; left: 50%; opacity: 0.2; animation-duration: 25s; }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 30px) scale(1.1); }
+            100% { transform: translate(-30px, 50px) scale(0.9); }
+        }
+
+        /* === App Container === */
+        .app-container {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            height: 100vh; width: 100vw;
+        }
+
+        /* === Premium UI Components === */
+        .sk-surface {
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            box-shadow: var(--surface-shadow);
+            backdrop-filter: var(--surface-blur);
+            -webkit-backdrop-filter: var(--surface-blur);
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* Custom Div Buttons */
-        .custom-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border-radius: 14px;
-            background: var(--btn-bg);
-            box-shadow: var(--btn-shadow);
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
+        .sk-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 20px; border-radius: 16px;
+            background: var(--btn-bg); border: 1px solid var(--btn-border);
+            box-shadow: var(--btn-shadow); color: var(--text-main);
+            font-weight: 600; font-size: 0.9rem; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--card-border);
+        }
+        .sk-btn:active {
+            background: var(--btn-active-bg); box-shadow: var(--btn-active-shadow);
+            transform: scale(0.96);
         }
 
-        body.theme-glass .custom-btn:active { background: var(--btn-active); transform: scale(0.96); }
-        body.theme-neu .custom-btn:active { box-shadow: var(--btn-active-shadow); transform: scale(0.98); }
+        .sk-btn-primary {
+            background: var(--accent); border: none; color: #fff;
+            box-shadow: 0 4px 20px -5px var(--accent);
+        }
+        body.theme-neu .sk-btn-primary {
+            box-shadow: 5px 5px 10px #12151d, -5px -5px 10px #222735, inset 2px 2px 5px rgba(255,255,255,0.1);
+        }
+        .sk-btn-primary:active { transform: scale(0.96); filter: brightness(0.9); }
 
-        .custom-btn.primary {
-            background: var(--accent-color);
-            box-shadow: 0 4px 15px var(--accent-color);
-            color: #fff;
-            border: none;
+        .sk-btn-danger {
+            color: #f43f5e;
         }
-        body.theme-neu .custom-btn.primary {
-            box-shadow: 6px 6px 12px #090e19, -6px -6px 12px #15203b, inset 2px 2px 5px rgba(255,255,255,0.2);
-        }
-        .custom-btn.primary:active { transform: scale(0.96); filter: brightness(0.9); }
+        body.theme-glass .sk-btn-danger { background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.3); box-shadow: none; }
+        
+        .sk-btn-danger:active { color: #fff; background: #f43f5e; }
 
-        .delete-btn {
-            border: 1px solid rgba(244, 63, 94, 0.3) !important;
-            transition: all 0.3s;
+        /* Form Inputs */
+        .sk-input {
+            width: 100%; padding: 16px; border-radius: 16px;
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            color: var(--text-main); font-size: 0.95rem; outline: none;
+            transition: all 0.3s ease;
         }
-        body.theme-neu .delete-btn {
-            box-shadow: 4px 4px 8px #090e19, -4px -4px 8px #15203b !important;
-        }
-        .delete-btn:hover { background: rgba(244, 63, 94, 0.1) !important; }
+        body.theme-neu .sk-input { box-shadow: var(--input-shadow); }
+        .sk-input:focus { border-color: var(--accent); }
+        body.theme-neu .sk-input:focus { box-shadow: inset 5px 5px 10px #12151d, inset -5px -5px 10px #222735, 0 0 0 1px var(--accent); }
 
-        /* === Custom Scrollable Area === */
-        .scroll-container {
-            height: calc(100vh - var(--navbar-height) - var(--footer-height));
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-bottom: 40px;
+        /* === Scrollable Areas === */
+        .scroller {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            padding-bottom: calc(var(--foot-height) + 20px);
+            scrollbar-width: none; /* Firefox */
         }
-        .scroll-container::-webkit-scrollbar { width: 6px; }
-        .scroll-container::-webkit-scrollbar-track { background: transparent; }
-        .scroll-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .scroller::-webkit-scrollbar { display: none; }
 
-        /* === Secure Video Player === */
-        .secure-embed-wrapper {
-            position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
-            background: #000;
-            border-radius: 16px;
-            overflow: hidden;
+        /* === Video Grid & Cards === */
+        .video-grid {
+            display: grid; grid-template-columns: 1fr; gap: 24px; padding: 20px;
+            max-width: 1400px; margin: 0 auto;
         }
-        .secure-embed-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-            z-index: 10;
+        @media(min-width: 640px) { .video-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width: 1024px) { .video-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .video-card {
+            display: flex; flex-direction: column; overflow: hidden;
+            cursor: pointer; position: relative;
+            transform: translateZ(0); /* Hardware accel */
         }
-        /* Invisible overlay to catch top-right clicks (anti-download) */
-        .secure-overlay-tr {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 60px;
-            background: transparent;
-            z-index: 20;
+        .video-card:hover { transform: translateY(-4px); }
+        
+        .thumb-wrapper {
+            position: relative; width: 100%; aspect-ratio: 16/9;
+            background: #000; overflow: hidden; border-radius: 20px 20px 0 0;
+        }
+        .thumb-img {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.8;
+            transition: opacity 0.4s, transform 0.8s ease;
+        }
+        .video-card:hover .thumb-img { opacity: 1; transform: scale(1.05); }
+        
+        .play-overlay {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.4); opacity: 0; transition: opacity 0.3s;
+        }
+        .video-card:hover .play-overlay { opacity: 1; }
+        
+        .play-btn {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 25px var(--accent); font-size: 1.2rem; padding-left: 4px;
+            transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .video-card:hover .play-btn { transform: scale(1); }
+
+        /* === Secure Player === */
+        .player-wrapper {
+            position: relative; width: 100%; aspect-ratio: 16/9;
+            background: #000; overflow: hidden; border-radius: 12px;
+        }
+        .player-iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 10;
+        }
+        .anti-download-shield {
+            position: absolute; top: 0; right: 0; width: 120px; height: 80px; z-index: 20; background: transparent;
         }
 
-        /* === Custom Toasts === */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
+        /* === Modals === */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
-        .custom-toast {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-color);
-            box-shadow: var(--card-shadow);
-            backdrop-filter: var(--card-backdrop);
-            color: var(--text-main);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        .modal-backdrop.active { display: flex; opacity: 1; }
+        
+        .modal-box {
+            width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 32px; scrollbar-width: none;
         }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+        .modal-backdrop.active .modal-box { transform: scale(1) translateY(0); }
+        .modal-player-box { max-width: 1000px; padding: 0; overflow: hidden; }
+
+        /* === Non-Stacking Toasts === */
+        #toast-root {
+            position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; pointer-events: none;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .sk-toast {
+            background: var(--surface-bg); border: 1px solid var(--accent);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: var(--surface-blur);
+            color: #fff; padding: 14px 28px; border-radius: 30px;
+            font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 12px;
+            animation: toastEnter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .sk-toast.leaving { animation: toastLeave 0.3s ease forwards; }
+        
+        @keyframes toastEnter {
+            from { opacity: 0; transform: translateY(-30px) scale(0.9); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .toast-out { animation: slideUp 0.3s ease-in forwards; }
-        @keyframes slideUp {
+        @keyframes toastLeave {
             to { opacity: 0; transform: translateY(-20px) scale(0.9); }
         }
 
-        /* Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 5000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        /* Helpers */
+        .color-orb {
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
+        .color-orb.active { border-color: #fff; transform: scale(1.15); box-shadow: 0 0 15px currentColor; }
         
-        .modal-content {
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .drop-zone {
+            border: 2px dashed var(--surface-border); border-radius: 20px;
+            padding: 40px 20px; text-align: center; position: relative;
+            background: rgba(0,0,0,0.2); transition: all 0.3s;
         }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .player-modal-content { max-width: 900px; width: 100%; }
-
-        /* Form Inputs */
-        .custom-input {
-            width: 100%;
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        body.theme-neu .custom-input {
-            box-shadow: inset 4px 4px 8px #060a12, inset -4px -4px 8px #182442;
-            border: none;
-        }
-        .custom-input:focus { border-color: var(--accent-color); }
+        body.theme-neu .drop-zone { border-color: #333a4d; box-shadow: var(--input-shadow); }
+        .drop-zone:hover { border-color: var(--accent); background: rgba(0,0,0,0.4); }
         
-        /* Accent Color Picker */
-        .color-dot {
-            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-            border: 2px solid transparent; transition: transform 0.2s;
+        .footer {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: var(--foot-height);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
+            color: var(--text-muted); text-transform: uppercase; z-index: 40;
+            background: linear-gradient(to top, var(--bg-color) 40%, transparent);
         }
-        .color-dot:active { transform: scale(0.8); }
-        .color-dot.active { border-color: #fff; transform: scale(1.1); }
     </style>
 </head>
 <body class="theme-glass">
 
-    <!-- Anti-Debugger & Security Trap -->
-    <script>
-        const rickrollUrl = 'https://youtu.be/dQw4w9WgXcQ';
-        let trapTriggered = false;
+    <!-- Ambient Background -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
 
-        function triggerDevToolsTrap() {
-            if (trapTriggered) return;
-            trapTriggered = true;
-            window.location.href = rickrollUrl;
-        }
-
-        // Disable Right Click
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        
-        // Disable DevTools Shortcuts & Trigger Redirect
-        document.addEventListener('keydown', e => {
-            const key = e.key.toUpperCase();
-            if (key === 'F12' || 
-               (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(key)) || 
-               (e.ctrlKey && key === 'U')) {
-                e.preventDefault();
-                triggerDevToolsTrap();
-                return false;
-            }
-        });
-
-        // Debugger Timing Trap
-        setInterval(() => {
-            const before = new Date().getTime();
-        // Disable DevTools Shortcuts
-        document.addEventListener('keydown', e => {
-            if (e.key === 'F12' || 
-               (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) || 
-               (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-
-        // Debugger Trap
-        setInterval(() => {
-            const before = new Date().getTime();
-            (function() { return false; }['constructor']('debugger')());
-            const after = new Date().getTime();
-            if (after - before > 100) {
-                // Trap Sprung: Immediate redirect to Astley Protocol
-                window.location.href = 'https://youtu.be/dQw4w9WgXcQ'; 
-            }
-        }, 2000);
-    </script>
-
-    <div id="toast-container"></div>
-
-    <!-- Top Navigation -->
-    <header class="depth-card mx-4 mt-4 h-[60px] flex items-center justify-between px-5 z-40 relative border-0">
-        <div class="flex items-center gap-3 cursor-pointer" id="nav-home-btn">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white" style="background: var(--accent-color);">
-                <i class="fa-solid fa-play"></i>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header class="h-[72px] flex items-center justify-between px-6 z-40">
+            <div class="flex items-center gap-4 cursor-pointer group" id="nav-logo">
+                <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white transition-transform group-active:scale-90" style="background: var(--accent); box-shadow: 0 4px 15px var(--accent);">
+                    <i class="fa-solid fa-play ml-1 text-lg"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight">SK AnonMp4</h1>
             </div>
-            <span class="text-lg font-bold tracking-tight">SK AnonMp4</span>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <div id="btn-upload" class="custom-btn hidden sm:flex px-3 py-2">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                <span class="text-xs">Upload</span>
-            </div>
-            <div id="btn-settings" class="custom-btn px-3 py-2">
-                <i class="fa-solid fa-gear"></i>
-            </div>
-            <div id="auth-area">
-                <!-- Injected via JS -->
-            </div>
-        </div>
-    </header>
-
-    <!-- Scrollable Main View -->
-    <main class="scroll-container mt-4 px-4 w-full max-w-6xl mx-auto" id="main-feed">
-        <div class="flex justify-between items-center mb-6 px-2">
-            <div>
-                <h1 class="text-2xl font-bold">Discover Videos</h1>
-                <p class="text-sm text-gray-400 mt-1">Secure local playback node</p>
-            </div>
-        </div>
-
-        <div id="videos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Loader -->
-            <div class="depth-card aspect-video flex items-center justify-center text-gray-500">
-                <i class="fa-solid fa-spinner fa-spin text-2xl" style="color: var(--accent-color);"></i>
-            </div>
-        </div>
-
-        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center">
-            <i class="fa-solid fa-film text-5xl mb-4 text-gray-600"></i>
-            <h3 class="text-lg font-bold">No videos yet</h3>
-            <p class="text-sm text-gray-400">Be the first to upload securely.</p>
-        </div>
-    </main>
-
-    <!-- Upload View (Hidden by default) -->
-    <main class="scroll-container mt-4 px-4 w-full max-w-2xl mx-auto hidden" id="upload-view">
-        <div class="depth-card p-8">
-            <h2 class="text-xl font-bold mb-2">Secure Upload</h2>
-            <p class="text-xs text-gray-400 mb-8">Files are cached directly into IndexedDB for secure local playback and synced via RTDB metadata.</p>
             
-            <div class="space-y-5">
-                <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-2xl p-10 text-center relative overflow-hidden transition-colors" style="background: rgba(0,0,0,0.2);">
-                    <input type="file" id="video-file-input" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    <div id="drop-prompt" class="pointer-events-none">
-                        <i class="fa-solid fa-file-video text-4xl mb-3" style="color: var(--accent-color);"></i>
-                        <p class="text-sm font-semibold">Tap to select video</p>
-                    </div>
-                    <div id="drop-selected" class="hidden pointer-events-none">
-                        <i class="fa-solid fa-circle-check text-4xl text-emerald-500 mb-3"></i>
-                        <p id="selected-filename" class="text-sm font-semibold text-emerald-400 truncate px-4"></p>
-                    </div>
+            <div class="flex items-center gap-3">
+                <div id="btn-refresh" class="sk-btn hidden sm:flex !p-3" title="Refresh Feed">
+                    <i class="fa-solid fa-rotate-right"></i>
                 </div>
+                <div id="btn-upload-nav" class="sk-btn hidden sm:flex">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+                </div>
+                <div id="btn-settings" class="sk-btn !p-3">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+                <div id="auth-container">
+                    <!-- Auth Button Injected Here -->
+                </div>
+            </div>
+        </header>
 
+        <!-- Main Content Area -->
+        <main class="scroller" id="view-feed">
+            <div class="px-6 py-4 flex justify-between items-end max-w-[1400px] mx-auto">
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Custom Title (Optional)</label>
-                    <input type="text" id="upload-title" class="custom-input" placeholder="Leave blank for filename">
+                    <h2 class="text-3xl font-extrabold tracking-tight mb-1">Discover</h2>
+                    <p class="text-sm" style="color: var(--text-muted)">Secure anonymous stream network.</p>
                 </div>
+                <div class="sm:hidden sk-btn !p-3" id="btn-upload-mobile">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </div>
+            </div>
 
-                <div id="upload-action-btn" class="custom-btn primary w-full py-4 text-base">
-                    <i class="fa-solid fa-shield-halved"></i> Encode & Sync
+            <div id="video-grid" class="video-grid">
+                <!-- Loader -->
+                <div class="col-span-full py-20 flex justify-center">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl" style="color: var(--accent);"></i>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- Footer -->
-    <footer class="fixed bottom-0 w-full h-[50px] flex items-center justify-center text-[10px] text-gray-500 tracking-widest uppercase z-30" style="background: var(--bg-color);">
-        © 2026 Sanchar Koirala | All rights reserved
-    </footer>
+            <div id="empty-state" class="hidden flex-col items-center justify-center py-32 text-center">
+                <i class="fa-solid fa-film text-6xl mb-6 opacity-30"></i>
+                <h3 class="text-2xl font-bold mb-2">The void is empty</h3>
+                <p class="text-sm" style="color: var(--text-muted)">Be the first to upload securely to the network.</p>
+            </div>
+        </main>
 
-    <!-- Modals -->
-    
-    <!-- Player Modal -->
-    <div id="player-modal" class="modal-overlay">
-        <div class="modal-content player-modal-content depth-card flex flex-col overflow-hidden p-0 border-0">
-            <div class="flex items-center justify-between p-4 border-b" style="border-color: var(--card-border); background: rgba(0,0,0,0.3);">
-                <div class="flex items-center gap-3 w-4/5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <h3 id="player-title" class="font-bold text-sm truncate">Video Title</h3>
-                </div>
-                <div id="close-player-btn" class="custom-btn px-3 py-2 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
+        <!-- Upload View -->
+        <main class="scroller hidden" id="view-upload">
+            <div class="max-w-2xl mx-auto px-6 py-10">
+                <div class="sk-surface p-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-2xl font-bold">Secure Transmission</h2>
+                        <div class="sk-btn !p-3" id="btn-close-upload">
+                            <i class="fa-solid fa-xmark"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="drop-zone" id="drop-area">
+                            <input type="file" id="file-input" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div id="drop-ui-default">
+                                <i class="fa-solid fa-cloud-arrow-up text-5xl mb-4" style="color: var(--accent);"></i>
+                                <h4 class="text-lg font-bold mb-1">Select Video Data</h4>
+                                <p class="text-xs" style="color: var(--text-muted)">Max size: 20GB. MP4, MKV, AVI</p>
+                            </div>
+                            <div id="drop-ui-selected" class="hidden">
+                                <i class="fa-solid fa-circle-check text-5xl text-emerald-400 mb-4"></i>
+                                <h4 class="text-lg font-bold mb-1 truncate px-4" id="selected-name">video.mp4</h4>
+                                <p class="text-xs text-emerald-500">Ready for encryption</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--text-muted)">Transmission Alias (Title)</label>
+                            <input type="text" id="upload-title" class="sk-input" placeholder="Leave blank to use filename">
+                        </div>
+
+                        <div id="btn-submit-upload" class="sk-btn sk-btn-primary w-full py-4 text-lg mt-4">
+                            <i class="fa-solid fa-satellite-dish"></i> Broadcast to Network
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="w-full bg-black relative flex items-center justify-center overflow-hidden">
-                <i id="player-loader" class="fa-solid fa-circle-notch fa-spin text-3xl absolute text-gray-500 z-0"></i>
-                <div class="secure-embed-wrapper w-full">
-                    <iframe id="secure-iframe" allowfullscreen></iframe>
-                    <div class="secure-overlay-tr" oncontextmenu="return false;"></div>
-                </div>
-            </div>
-            <div class="p-4 text-xs text-gray-400 flex justify-between items-center" style="background: rgba(0,0,0,0.3);">
-                <span id="player-uploader"><i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Secured Remote Node</span>
-            </div>
-        </div>
+        </main>
+
+        <footer class="footer">
+            © 2026 Sanchar Koirala | All Rights Reserved
+        </footer>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-content depth-card p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold">Preferences</h3>
-                <div id="close-settings-btn" class="custom-btn px-3 py-2 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <!-- Theme -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-3">Vibe (Theme)</label>
-                    <div class="flex gap-3">
-                        <div class="custom-btn flex-1 text-xs py-3" id="theme-glass-btn">Glassmorphism</div>
-                        <div class="custom-btn flex-1 text-xs py-3" id="theme-neu-btn">Neumorphism</div>
-                    </div>
-                </div>
-
-                <!-- Accent Color -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-3">Accent Color</label>
-                    <div class="flex justify-between px-2">
-                        <div class="color-dot bg-[#6366f1]" data-color="#6366f1"></div>
-                        <div class="color-dot bg-[#ec4899]" data-color="#ec4899"></div>
-                        <div class="color-dot bg-[#10b981]" data-color="#10b981"></div>
-                        <div class="color-dot bg-[#f59e0b]" data-color="#f59e0b"></div>
-                        <div class="color-dot bg-[#3b82f6]" data-color="#3b82f6"></div>
-                    </div>
-                </div>
-
-                <!-- Haptics / Audio -->
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold">Sound FX</span>
-                    <div class="custom-btn px-4 py-2" id="toggle-sound">ON</div>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-semibold">Haptic Vibration</span>
-                    <div class="custom-btn px-4 py-2" id="toggle-haptic">ON</div>
-                </div>
-
-                <!-- Actions -->
-                <div class="pt-4 border-t" style="border-color: var(--card-border);">
-                    <div id="refresh-app-btn" class="custom-btn primary w-full py-3 mb-3">
-                        <i class="fa-solid fa-rotate"></i> Refresh App Data
-                    </div>
-                    <div id="reset-settings-btn" class="custom-btn w-full py-3 text-rose-400">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Reset to Default
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- === Modals === -->
 
     <!-- Auth Modal -->
-    <div id="auth-modal" class="modal-overlay">
-        <div class="modal-content depth-card p-8">
-            <div class="flex justify-between items-center mb-6">
+    <div id="modal-auth" class="modal-backdrop">
+        <div class="modal-box sk-surface">
+            <div class="flex justify-between items-center mb-8">
                 <div>
-                    <h3 class="text-xl font-bold" id="auth-title">Identify</h3>
-                    <p class="text-xs text-gray-400 mt-1">Secured via SHA-256 Hashing</p>
+                    <h2 class="text-2xl font-bold" id="auth-title">Identify</h2>
+                    <p class="text-xs mt-1" style="color: var(--text-muted)">SHA-256 Encrypted Handshake</p>
                 </div>
-                <div id="close-auth-btn" class="custom-btn px-3 py-2 text-xs">
+                <div class="sk-btn !p-3 modal-close">
                     <i class="fa-solid fa-xmark"></i>
                 </div>
             </div>
 
-            <div class="space-y-4">
-                <input type="text" id="auth-user" class="custom-input" placeholder="Username" autocomplete="off">
-                <input type="password" id="auth-pass" class="custom-input" placeholder="Password" autocomplete="off">
+            <div class="space-y-5">
+                <input type="text" id="auth-user" class="sk-input" placeholder="Alias (Username)" autocomplete="off">
+                <input type="password" id="auth-pass" class="sk-input" placeholder="Passphrase" autocomplete="off">
                 
-                <div id="auth-action-btn" class="custom-btn primary w-full py-3 mt-2">
+                <div id="btn-auth-submit" class="sk-btn sk-btn-primary w-full py-4 mt-4">
                     <i class="fa-solid fa-fingerprint"></i> Authenticate
                 </div>
             </div>
             
-            <div class="mt-5 text-center">
-                <span class="text-xs text-gray-500 cursor-pointer hover:text-white transition-colors" id="auth-switch-mode">
-                    New node? Tap to Create Entity
+            <div class="mt-8 text-center">
+                <span class="text-sm font-semibold cursor-pointer transition-colors hover:text-white" id="btn-auth-toggle" style="color: var(--accent);">
+                    New Entity? Create Identity
                 </span>
             </div>
         </div>
     </div>
 
-    <!-- Core Logic & Firebase -->
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-backdrop">
+        <div class="modal-box sk-surface">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">Preferences</h2>
+                <div class="sk-btn !p-3 modal-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Vibe -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-4" style="color: var(--text-muted)">Interface Vibe</label>
+                    <div class="flex gap-4">
+                        <div class="sk-btn flex-1 py-3" id="btn-theme-glass">Glassmorphism</div>
+                        <div class="sk-btn flex-1 py-3" id="btn-theme-neu">Neumorphism</div>
+                    </div>
+                </div>
+
+                <!-- Accent -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-4" style="color: var(--text-muted)">Accent Color</label>
+                    <div class="flex justify-between px-2">
+                        <div class="color-orb text-[#6366f1] bg-[#6366f1]" data-color="#6366f1"></div>
+                        <div class="color-orb text-[#ec4899] bg-[#ec4899]" data-color="#ec4899"></div>
+                        <div class="color-orb text-[#10b981] bg-[#10b981]" data-color="#10b981"></div>
+                        <div class="color-orb text-[#f59e0b] bg-[#f59e0b]" data-color="#f59e0b"></div>
+                        <div class="color-orb text-[#3b82f6] bg-[#3b82f6]" data-color="#3b82f6"></div>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold">Audio Feedback</span>
+                        <div class="sk-btn px-6 py-2" id="btn-toggle-sound">ON</div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold">Haptic Feedback</span>
+                        <div class="sk-btn px-6 py-2" id="btn-toggle-haptic">ON</div>
+                    </div>
+                </div>
+
+                <!-- Reset -->
+                <div class="pt-6 border-t" style="border-color: var(--surface-border);">
+                    <div id="btn-reset-app" class="sk-btn sk-btn-danger w-full py-4">
+                        <i class="fa-solid fa-skull"></i> Reset All Settings
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Modal -->
+    <div id="modal-player" class="modal-backdrop">
+        <div class="modal-box modal-player-box sk-surface flex flex-col">
+            <div class="flex items-center justify-between p-4 bg-black/40 border-b" style="border-color: var(--surface-border);">
+                <div class="flex items-center gap-3 w-4/5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" style="box-shadow: 0 0 10px #34d399;"></span>
+                    <h3 id="player-title" class="font-bold text-sm truncate">Video Title</h3>
+                </div>
+                <div class="sk-btn !p-2 !rounded-lg text-xs modal-close" id="btn-close-player">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            </div>
+            
+            <div class="player-wrapper">
+                <i id="player-loader" class="fa-solid fa-satellite-dish fa-spin text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style="color: var(--accent); z-index: 5;"></i>
+                <iframe id="player-frame" class="player-iframe opacity-0 transition-opacity duration-700" allowfullscreen></iframe>
+                <!-- Invisible shield to block top-right external links/downloads in players -->
+                <div class="anti-download-shield" oncontextmenu="return false;"></div>
+            </div>
+            
+            <div class="p-4 bg-black/40 flex justify-between items-center text-xs">
+                <span id="player-meta" style="color: var(--text-muted)"><i class="fa-solid fa-shield-halved text-emerald-400 mr-2"></i> Owner: Unknown</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-root"></div>
+
+    <!-- === Logic Engine === -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getDatabase, ref, set, get, child, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // --- Firebase Init ---
         const firebaseConfig = {
             apiKey: "AIzaSyDpCAXfhldRc1nCZDWlWNRbcMFjqAh8uPc",
             authDomain: "cloud-db-studio.firebaseapp.com",
@@ -520,386 +572,313 @@
             messagingSenderId: "343326148662",
             appId: "1:343326148662:web:987738ccc8f9d6a8253097"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
-        // --- State Management ---
-        let appState = {
-            user: JSON.parse(localStorage.getItem('sk_user')) || null,
+
+        // --- State ---
+        const state = {
+            user: localStorage.getItem('sk_user') || null,
             settings: JSON.parse(localStorage.getItem('sk_settings')) || {
-                theme: 'glass',
-                accent: '#6366f1',
-                sound: true,
-                haptic: true
+                theme: 'glass', accent: '#6366f1', sound: true, haptic: true
             },
-            view: 'feed', 
-            authMode: 'login' 
+            authMode: 'login',
+            uploadFile: null,
+            activeToast: null
         };
 
-        // --- Audio & Haptics Engine ---
+        // --- Hardware Feedback Engine ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        function sysSound(type = 'click') {
-            if (!appState.settings.sound) return;
+        function playTone(type = 'click') {
+            if (!state.settings.sound) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
             const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
             
             if (type === 'click') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.05);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
             } else if (type === 'success') {
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
             } else if (type === 'error') {
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.2);
-                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
         }
 
-        function sysVibrate(pattern = 30) {
-            if (appState.settings.haptic && navigator.vibrate) {
+        function triggerHaptic(pattern = 20) {
+            if (state.settings.haptic && navigator.vibrate) {
                 navigator.vibrate(pattern);
             }
         }
 
-        // --- Toasts ---
-        function toast(msg, type = 'info') {
-            const cont = document.getElementById('toast-container');
-            const el = document.createElement('div');
-            el.className = 'custom-toast';
+        function interact(type = 'click') {
+            playTone(type);
+            triggerHaptic(type === 'error' ? [50,50,50] : (type === 'success' ? [30,40,30] : 20));
+        }
+
+        // Bind interact to all sk-btn and interactive elements
+        document.addEventListener('pointerdown', (e) => {
+            if(e.target.closest('.sk-btn') || e.target.closest('.color-orb') || e.target.closest('.video-card')) {
+                interact('click');
+            }
+        });
+
+        // --- Modern Toast System (Non-Stacking) ---
+        function showToast(message, type = 'info') {
+            const root = document.getElementById('toast-root');
+            
+            // Remove existing toast instantly
+            if (state.activeToast) {
+                state.activeToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'sk-toast';
             
             let icon = 'fa-info-circle text-blue-400';
-            if(type === 'success') { icon = 'fa-check-circle text-emerald-400'; sysSound('success'); sysVibrate([30,50,30]); }
-            else if(type === 'error') { icon = 'fa-exclamation-triangle text-rose-400'; sysSound('error'); sysVibrate([50,50,50]); }
-            else { sysSound('click'); sysVibrate(20); }
+            if(type === 'success') { icon = 'fa-check-circle text-emerald-400'; interact('success'); }
+            else if(type === 'error') { icon = 'fa-triangle-exclamation text-rose-400'; interact('error'); }
 
-            el.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
-            cont.appendChild(el);
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i> <span>${message}</span>`;
+            root.appendChild(toast);
+            state.activeToast = toast;
 
             setTimeout(() => {
-                el.classList.add('toast-out');
-                setTimeout(() => el.remove(), 300);
-            }, 2500);
+                if (state.activeToast === toast) {
+                    toast.classList.add('leaving');
+                    setTimeout(() => {
+                        if (state.activeToast === toast) {
+                            toast.remove();
+                            state.activeToast = null;
+                        }
+                    }, 300);
+                }
+            }, 3000);
         }
 
-        // --- Cryptography (SHA-256) ---
-        async function hashString(str) {
-            const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // --- UI Initialization ---
+        // --- Core UI Management ---
         function applySettings() {
-            document.body.className = `theme-${appState.settings.theme}`;
-            document.documentElement.style.setProperty('--accent-color', appState.settings.accent);
+            document.body.className = `theme-${state.settings.theme}`;
+            document.documentElement.style.setProperty('--accent', state.settings.accent);
             
-            document.querySelectorAll('.color-dot').forEach(d => {
-                d.classList.toggle('active', d.dataset.color === appState.settings.accent);
+            // Update Settings UI
+            document.getElementById('btn-theme-glass').classList.toggle('sk-btn-primary', state.settings.theme === 'glass');
+            document.getElementById('btn-theme-neu').classList.toggle('sk-btn-primary', state.settings.theme === 'neu');
+            
+            document.querySelectorAll('.color-orb').forEach(orb => {
+                orb.classList.toggle('active', orb.dataset.color === state.settings.accent);
             });
-            
-            document.getElementById('toggle-sound').innerText = appState.settings.sound ? 'ON' : 'OFF';
-            document.getElementById('toggle-sound').classList.toggle('primary', appState.settings.sound);
-            
-            document.getElementById('toggle-haptic').innerText = appState.settings.haptic ? 'ON' : 'OFF';
-            document.getElementById('toggle-haptic').classList.toggle('primary', appState.settings.haptic);
 
-            localStorage.setItem('sk_settings', JSON.stringify(appState.settings));
+            document.getElementById('btn-toggle-sound').innerText = state.settings.sound ? 'ON' : 'OFF';
+            document.getElementById('btn-toggle-sound').classList.toggle('sk-btn-primary', state.settings.sound);
+            
+            document.getElementById('btn-toggle-haptic').innerText = state.settings.haptic ? 'ON' : 'OFF';
+            document.getElementById('btn-toggle-haptic').classList.toggle('sk-btn-primary', state.settings.haptic);
+
+            localStorage.setItem('sk_settings', JSON.stringify(state.settings));
         }
 
         function updateAuthUI() {
-            const authArea = document.getElementById('auth-area');
-            const upBtn = document.getElementById('btn-upload');
-            if (appState.user) {
-                authArea.innerHTML = `
-                    <div class="custom-btn" id="btn-logout" style="border-color: rgba(244, 63, 94, 0.3); color: #f43f5e;">
-                        <i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline">${appState.user}</span>
+            const container = document.getElementById('auth-container');
+            const upNav = document.getElementById('btn-upload-nav');
+            const upMob = document.getElementById('btn-upload-mobile');
+
+            if (state.user) {
+                container.innerHTML = `
+                    <div class="sk-btn" style="border-color: rgba(244, 63, 94, 0.3); color: #f43f5e;" id="btn-logout">
+                        <i class="fa-solid fa-power-off"></i> <span class="hidden sm:inline font-bold">${state.user}</span>
                     </div>
                 `;
-                upBtn.classList.remove('hidden');
+                upNav.classList.remove('hidden');
+                upMob.classList.remove('hidden');
+                
                 document.getElementById('btn-logout').addEventListener('click', () => {
-                    handleInteraction();
-                    appState.user = null;
+                    state.user = null;
                     localStorage.removeItem('sk_user');
                     updateAuthUI();
                     switchView('feed');
-                    toast('Entity disconnected.', 'info');
+                    showToast('Entity disconnected.', 'info');
                 });
             } else {
-                authArea.innerHTML = `
-                    <div class="custom-btn primary" id="btn-login">
+                container.innerHTML = `
+                    <div class="sk-btn sk-btn-primary" id="btn-login-trigger">
                         <i class="fa-solid fa-fingerprint"></i> <span class="hidden sm:inline">Identify</span>
                     </div>
                 `;
-                upBtn.classList.add('hidden');
-                document.getElementById('btn-login').addEventListener('click', () => {
-                    handleInteraction();
-                    openModal('auth-modal');
-                });
+                upNav.classList.add('hidden');
+                upMob.classList.add('hidden');
+                
+                document.getElementById('btn-login-trigger').addEventListener('click', () => openModal('modal-auth'));
             }
         }
 
         function switchView(view) {
-            appState.view = view;
-            document.getElementById('main-feed').classList.toggle('hidden', view !== 'feed');
-            document.getElementById('upload-view').classList.toggle('hidden', view !== 'upload');
-            if(view === 'feed') fetchFeed();
+            document.getElementById('view-feed').classList.toggle('hidden', view !== 'feed');
+            document.getElementById('view-upload').classList.toggle('hidden', view !== 'upload');
+            if (view === 'feed') fetchVideos();
         }
 
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // Helper to bind Custom Div buttons safely
-        function handleInteraction() { sysSound('click'); sysVibrate(20); }
-
-        // --- Core Interactions Setup ---
-        document.getElementById('nav-home-btn').addEventListener('click', () => {
-            handleInteraction();
-            switchView('feed');
-        });
-
-        document.getElementById('btn-upload').addEventListener('click', () => {
-            handleInteraction();
-            switchView('upload');
-        });
-
-        document.getElementById('btn-settings').addEventListener('click', () => {
-            handleInteraction();
-            openModal('settings-modal');
-        });
-
-        document.querySelectorAll('.modal-overlay').forEach(mod => {
-            mod.addEventListener('click', e => {
-                if (e.target === mod && mod.id !== 'player-modal') { 
-                    closeModal(mod.id);
-                }
-            });
-        });
-
-        document.getElementById('close-settings-btn').addEventListener('click', () => { handleInteraction(); closeModal('settings-modal'); });
-        document.getElementById('close-auth-btn').addEventListener('click', () => { handleInteraction(); closeModal('auth-modal'); });
-        document.getElementById('close-player-btn').addEventListener('click', () => { 
-            handleInteraction(); 
-            const iframe = document.getElementById('secure-iframe');
-            iframe.src = ''; 
-            closeModal('player-modal'); 
-        });
-
-        // Settings Toggles
-        document.getElementById('theme-glass-btn').addEventListener('click', () => { handleInteraction(); appState.settings.theme = 'glass'; applySettings(); });
-        document.getElementById('theme-neu-btn').addEventListener('click', () => { handleInteraction(); appState.settings.theme = 'neu'; applySettings(); });
+        // --- Modals ---
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         
-        document.querySelectorAll('.color-dot').forEach(dot => {
-            dot.addEventListener('click', (e) => {
-                handleInteraction();
-                appState.settings.accent = e.target.dataset.color;
-                applySettings();
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', (e) => closeModal(e.target.closest('.modal-backdrop').id));
+        });
+        
+        document.querySelectorAll('.modal-backdrop').forEach(mod => {
+            mod.addEventListener('click', e => {
+                // Prevent closing player modal by clicking outside to avoid accidental stops
+                if (e.target === mod && mod.id !== 'modal-player') closeModal(mod.id);
             });
         });
 
-        document.getElementById('toggle-sound').addEventListener('click', () => {
-            handleInteraction();
-            appState.settings.sound = !appState.settings.sound;
-            applySettings();
-        });
-        document.getElementById('toggle-haptic').addEventListener('click', () => {
-            handleInteraction();
-            appState.settings.haptic = !appState.settings.haptic;
-            applySettings();
-        });
-
-        document.getElementById('refresh-app-btn').addEventListener('click', () => {
-            handleInteraction();
-            toast('Rebuilding data nodes...', 'info');
-            setTimeout(() => window.location.reload(), 800);
-        });
-        document.getElementById('reset-settings-btn').addEventListener('click', () => {
-            handleInteraction();
-            localStorage.removeItem('sk_settings');
-            window.location.reload();
-        });
+        // --- Cryptography ---
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         // --- Auth Logic ---
-        document.getElementById('auth-switch-mode').addEventListener('click', () => {
-            handleInteraction();
-            appState.authMode = appState.authMode === 'login' ? 'signup' : 'login';
-            document.getElementById('auth-title').innerText = appState.authMode === 'login' ? 'Identify' : 'Create Entity';
-            document.getElementById('auth-switch-mode').innerText = appState.authMode === 'login' ? 'New node? Tap to Create Entity' : 'Existing node? Tap to Identify';
+        document.getElementById('btn-auth-toggle').addEventListener('click', () => {
+            state.authMode = state.authMode === 'login' ? 'signup' : 'login';
+            document.getElementById('auth-title').innerText = state.authMode === 'login' ? 'Identify' : 'Create Identity';
+            document.getElementById('btn-auth-toggle').innerText = state.authMode === 'login' ? 'New Entity? Create Identity' : 'Existing Entity? Identify';
         });
 
-        document.getElementById('auth-action-btn').addEventListener('click', async () => {
-            handleInteraction();
-            const u = document.getElementById('auth-user').value.trim();
-            const p = document.getElementById('auth-pass').value;
+        document.getElementById('btn-auth-submit').addEventListener('click', async () => {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value;
             
-            if (!u || !p) { toast('Credentials required.', 'error'); return; }
+            if(!user || !pass) { showToast('Credentials required.', 'error'); return; }
             
-            const btn = document.getElementById('auth-action-btn');
-            btn.style.opacity = '0.5';
+            const btn = document.getElementById('btn-auth-submit');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
             btn.style.pointerEvents = 'none';
 
             try {
-                const hash = await hashString(p);
-                const userRef = child(ref(db), `SK-AnonMP4/users/${u}`);
+                const hash = await sha256(pass);
+                const userRef = child(ref(db), `SK-AnonMP4/users/${user}`);
                 const snap = await get(userRef);
 
-                if (appState.authMode === 'signup') {
-                    if (snap.exists()) throw new Error('Entity already exists.');
-                    await set(ref(db, `SK-AnonMP4/users/${u}`), { hash, created: Date.now() });
-                    toast('Entity creation successful.', 'success');
+                if (state.authMode === 'signup') {
+                    if (snap.exists()) throw new Error('Alias already in use.');
+                    await set(ref(db, `SK-AnonMP4/users/${user}`), { hash, created: Date.now() });
+                    showToast('Identity established.', 'success');
                 } else {
-                    if (!snap.exists()) throw new Error('Entity not found.');
-                    if (snap.val().hash !== hash) throw new Error('Invalid signature.');
-                    toast('Identity confirmed.', 'success');
+                    if (!snap.exists() || snap.val().hash !== hash) throw new Error('Invalid credentials.');
+                    showToast('Access granted.', 'success');
                 }
 
-                appState.user = u;
-                localStorage.setItem('sk_user', JSON.stringify(u));
+                state.user = user;
+                localStorage.setItem('sk_user', user);
                 updateAuthUI();
-                closeModal('auth-modal');
+                closeModal('modal-auth');
                 document.getElementById('auth-user').value = '';
                 document.getElementById('auth-pass').value = '';
                 
-            } catch (e) {
-                toast(e.message, 'error');
+            } catch (err) {
+                showToast(err.message, 'error');
             } finally {
-                btn.style.opacity = '1';
+                btn.innerHTML = `<i class="fa-solid fa-fingerprint"></i> Authenticate`;
                 btn.style.pointerEvents = 'auto';
             }
         });
 
-        // --- Upload Logic (AnonMP4 API) ---
-        let pendingFile = null;
+        // --- Upload Logic ---
+        const fInput = document.getElementById('file-input');
         
-        document.getElementById('video-file-input').addEventListener('change', (e) => {
+        fInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                handleInteraction();
-                pendingFile = e.target.files[0];
-                document.getElementById('drop-prompt').classList.add('hidden');
-                document.getElementById('drop-selected').classList.remove('hidden');
-                document.getElementById('selected-filename').innerText = pendingFile.name;
+                state.uploadFile = e.target.files[0];
+                document.getElementById('drop-ui-default').classList.add('hidden');
+                document.getElementById('drop-ui-selected').classList.remove('hidden');
+                document.getElementById('selected-name').innerText = state.uploadFile.name;
             }
         });
 
-        document.getElementById('upload-action-btn').addEventListener('click', async () => {
-            handleInteraction();
-            if (!pendingFile) { toast('Insert video data packet.', 'error'); return; }
-            if (!appState.user) { toast('Identification required.', 'error'); return; }
+        document.getElementById('btn-submit-upload').addEventListener('click', async () => {
+            if (!state.uploadFile) { showToast('No data packet selected.', 'error'); return; }
+            if (!state.user) { showToast('Authentication required.', 'error'); return; }
 
-            const btn = document.getElementById('upload-action-btn');
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Establishing Uplink...`;
+            const btn = document.getElementById('btn-submit-upload');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Transmitting...`;
             btn.style.pointerEvents = 'none';
 
             try {
-                const customTitle = document.getElementById('upload-title').value.trim();
-                toast('Transmitting to Remote Node...', 'info');
-                
-                // 1. Upload to AnonMP4 API
-                const formData = new FormData();
-                formData.append('file', pendingFile);
+                showToast('Uploading to secure node...', 'info');
+                const fd = new FormData();
+                fd.append('file', state.uploadFile);
 
-                const res = await fetch('https://anonmp4api.xyz/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                const res = await fetch('https://anonmp4api.xyz/upload', { method: 'POST', body: fd });
                 const apiData = await res.json();
                 
-                if (!apiData.success) {
-                    throw new Error(apiData.error?.message || 'Transmission rejected by host.');
-                }
+                if (!apiData.success) throw new Error(apiData.error?.message || 'Transmission failed.');
 
-                toast('Syncing metadata to RTDB...', 'info');
+                showToast('Syncing block to ledger...', 'info');
                 
-                // 2. Save Metadata to Firebase
+                const customTitle = document.getElementById('upload-title').value.trim();
                 const meta = {
                     id: apiData.video_id,
-                    title: customTitle || apiData.title || pendingFile.name,
-                    uploader: appState.user,
-                    thumbnail: apiData.thumbnail || 'https://placehold.co/640x360/111827/6366f1?text=Encrypted',
+                    title: customTitle || apiData.title || state.uploadFile.name,
+                    uploader: state.user,
+                    thumbnail: apiData.thumbnail || 'https://placehold.co/640x360/0b0f19/6366f1?text=No+Thumb',
                     watch_url: apiData.watch_url,
                     embed_url: apiData.embed_url,
                     delete_url: apiData.delete_url,
-                    timestamp: Date.now(),
-                    size: pendingFile.size
+                    timestamp: Date.now()
                 };
                 
                 await push(ref(db, 'SK-AnonMP4/videos'), meta);
 
-                toast('Upload Sequence Complete.', 'success');
+                showToast('Broadcast successful.', 'success');
                 
-                // Reset form
-                pendingFile = null;
-                document.getElementById('drop-prompt').classList.remove('hidden');
-                document.getElementById('drop-selected').classList.add('hidden');
+                // Reset
+                state.uploadFile = null;
+                fInput.value = '';
                 document.getElementById('upload-title').value = '';
-                document.getElementById('video-file-input').value = '';
+                document.getElementById('drop-ui-default').classList.remove('hidden');
+                document.getElementById('drop-ui-selected').classList.add('hidden');
                 
                 switchView('feed');
-
-            } catch(e) {
-                console.error(e);
-                toast(e.message || 'Sequence Failure.', 'error');
+            } catch (err) {
+                showToast(err.message, 'error');
             } finally {
-                btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Encode & Sync`;
+                btn.innerHTML = ogHtml;
                 btn.style.pointerEvents = 'auto';
             }
         });
 
-        // --- Delete Logic ---
-        async function deleteVideo(key, deleteUrl, e) {
-            e.stopPropagation(); 
-            handleInteraction();
-            
-            toast('Initiating erasure protocol...', 'info');
-            
-            try {
-                // Ping external delete URL
-                if (deleteUrl) {
-                    fetch(deleteUrl, { mode: 'no-cors' }).catch(err => console.warn('Remote deletion silent error', err));
-                }
-                
-                // Remove from RTDB
-                await remove(ref(db, `SK-AnonMP4/videos/${key}`));
-                
-                toast('Entity permanently erased.', 'success');
-            } catch (err) {
-                console.error(err);
-                toast('Erasure protocol failed.', 'error');
-            }
-        }
-
-        // --- Feed Logic ---
-        function fetchFeed() {
-            const grid = document.getElementById('videos-grid');
+        // --- Feed & Player Logic ---
+        function fetchVideos() {
+            const grid = document.getElementById('video-grid');
             const empty = document.getElementById('empty-state');
             
             onValue(ref(db, 'SK-AnonMP4/videos'), (snap) => {
-                const data = snap.val();
                 grid.innerHTML = '';
+                const data = snap.val();
                 
                 if (!data) {
                     empty.classList.remove('hidden');
@@ -908,84 +887,125 @@
                 
                 empty.classList.add('hidden');
                 
-                // Map object entries to retain RTDB push keys
                 const vids = Object.entries(data)
-                    .map(([key, val]) => ({ dbKey: key, ...val }))
-                    .sort((a,b) => b.timestamp - a.timestamp);
+                    .map(([key, val]) => ({ key, ...val }))
+                    .sort((a, b) => b.timestamp - a.timestamp);
 
                 vids.forEach(v => {
                     const card = document.createElement('div');
-                    card.className = 'depth-card overflow-hidden flex flex-col group cursor-pointer relative';
+                    card.className = 'sk-surface video-card';
                     
-                    let deleteBtnHTML = '';
-                    if (appState.user === v.uploader) {
-                        deleteBtnHTML = `
-                            <div class="custom-btn delete-btn w-full mt-3 py-2 text-xs" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e;" id="del-${v.dbKey}">
-                                <i class="fa-solid fa-trash-can"></i> Erase
+                    let delBtn = '';
+                    if (state.user === v.uploader) {
+                        delBtn = `
+                            <div class="sk-btn sk-btn-danger w-full mt-4 py-3 text-sm font-bold" id="del-${v.key}">
+                                <i class="fa-solid fa-trash-can"></i> Erase Data
                             </div>
                         `;
                     }
 
                     card.innerHTML = `
-                        <div class="relative aspect-video bg-black overflow-hidden" id="play-${v.dbKey}">
-                            <img src="${v.thumbnail}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity group-hover:scale-105 duration-500" onerror="this.src='https://placehold.co/640x360/111827/6366f1?text=No+Thumbnail'">
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <div class="w-12 h-12 rounded-full flex items-center justify-center text-white" style="background: var(--accent-color); box-shadow: 0 0 20px var(--accent-color);">
-                                    <i class="fa-solid fa-play ml-1"></i>
-                                </div>
+                        <div class="thumb-wrapper" id="play-${v.key}">
+                            <img src="${v.thumbnail}" class="thumb-img" onerror="this.src='https://placehold.co/640x360/0b0f19/6366f1?text=Void'">
+                            <div class="play-overlay">
+                                <div class="play-btn"><i class="fa-solid fa-play"></i></div>
                             </div>
                         </div>
-                        <div class="p-4 flex-grow flex flex-col justify-between">
+                        <div class="p-5 flex flex-col justify-between flex-grow">
                             <div>
-                                <h3 class="font-bold text-sm line-clamp-2">${v.title}</h3>
-                                <div class="flex items-center justify-between text-[10px] text-gray-500 mt-2">
-                                    <span class="truncate"><i class="fa-solid fa-user-shield" style="color: var(--accent-color);"></i> ${v.uploader}</span>
-                                    <span class="whitespace-nowrap ml-2">${new Date(v.timestamp).toLocaleDateString()}</span>
+                                <h3 class="font-bold text-base leading-tight mb-2 line-clamp-2">${v.title}</h3>
+                                <div class="flex justify-between items-center text-xs" style="color: var(--text-muted)">
+                                    <span class="truncate pr-2"><i class="fa-solid fa-user-astronaut" style="color: var(--accent)"></i> ${v.uploader}</span>
+                                    <span class="whitespace-nowrap">${new Date(v.timestamp).toLocaleDateString()}</span>
                                 </div>
                             </div>
-                            ${deleteBtnHTML}
+                            ${delBtn}
                         </div>
                     `;
-
                     grid.appendChild(card);
 
-                    document.getElementById(`play-${v.dbKey}`).addEventListener('click', () => playVideo(v));
+                    document.getElementById(`play-${v.key}`).addEventListener('click', () => openPlayer(v));
                     
-                    if (appState.user === v.uploader) {
-                        const delBtn = document.getElementById(`del-${v.dbKey}`);
-                        if(delBtn) {
-                            delBtn.addEventListener('click', (e) => deleteVideo(v.dbKey, v.delete_url, e));
-                        }
+                    if (state.user === v.uploader) {
+                        document.getElementById(`del-${v.key}`).addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            deleteVideo(v.key, v.delete_url);
+                        });
                     }
                 });
             });
         }
 
-        function playVideo(vData) {
-            handleInteraction();
-            openModal('player-modal');
-            document.getElementById('player-title').innerText = vData.title;
-            document.getElementById('player-uploader').innerHTML = `<i class="fa-solid fa-lock text-emerald-500 mr-1"></i> Origin: ${vData.uploader}`;
+        function openPlayer(v) {
+            openModal('modal-player');
+            document.getElementById('player-title').innerText = v.title;
+            document.getElementById('player-meta').innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-400 mr-2"></i> Owner: ${v.uploader}`;
             
-            const iframe = document.getElementById('secure-iframe');
+            const frame = document.getElementById('player-frame');
             const loader = document.getElementById('player-loader');
             
-            iframe.classList.add('opacity-0');
+            frame.classList.remove('opacity-100');
+            frame.classList.add('opacity-0');
             loader.classList.remove('hidden');
 
-            iframe.src = vData.embed_url || vData.watch_url;
-            
-            iframe.onload = () => {
+            frame.src = v.embed_url;
+            frame.onload = () => {
                 loader.classList.add('hidden');
-                iframe.classList.remove('opacity-0');
-                iframe.classList.add('transition-opacity', 'duration-500', 'opacity-100');
+                frame.classList.remove('opacity-0');
+                frame.classList.add('opacity-100');
             };
         }
 
-        // Init App
+        // Close Player completely stops video
+        document.getElementById('btn-close-player').addEventListener('click', () => {
+            document.getElementById('player-frame').src = '';
+        });
+
+        async function deleteVideo(key, delUrl) {
+            if(!confirm("Erase this entity from the void?")) return;
+            try {
+                showToast('Executing erasure...', 'info');
+                if (delUrl) fetch(delUrl, { mode: 'no-cors' }).catch(() => {});
+                await remove(ref(db, `SK-AnonMP4/videos/${key}`));
+                showToast('Entity purged.', 'success');
+            } catch(e) {
+                showToast('Erasure failed.', 'error');
+            }
+        }
+
+        // --- Event Listeners Setup ---
+        document.getElementById('nav-logo').addEventListener('click', () => switchView('feed'));
+        document.getElementById('btn-upload-nav').addEventListener('click', () => switchView('upload'));
+        document.getElementById('btn-upload-mobile').addEventListener('click', () => switchView('upload'));
+        document.getElementById('btn-close-upload').addEventListener('click', () => switchView('feed'));
+        document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
+        document.getElementById('btn-refresh').addEventListener('click', () => {
+            showToast('Re-syncing with void...', 'info');
+            fetchVideos();
+        });
+
+        // Settings actions
+        document.getElementById('btn-theme-glass').addEventListener('click', () => { state.settings.theme = 'glass'; applySettings(); });
+        document.getElementById('btn-theme-neu').addEventListener('click', () => { state.settings.theme = 'neu'; applySettings(); });
+        
+        document.querySelectorAll('.color-orb').forEach(orb => {
+            orb.addEventListener('click', e => { state.settings.accent = e.target.dataset.color; applySettings(); });
+        });
+
+        document.getElementById('btn-toggle-sound').addEventListener('click', () => { state.settings.sound = !state.settings.sound; applySettings(); });
+        document.getElementById('btn-toggle-haptic').addEventListener('click', () => { state.settings.haptic = !state.settings.haptic; applySettings(); });
+
+        document.getElementById('btn-reset-app').addEventListener('click', () => {
+            if(confirm("Factory reset all settings?")) {
+                localStorage.removeItem('sk_settings');
+                window.location.reload();
+            }
+        });
+
+        // Boot
         applySettings();
         updateAuthUI();
-        fetchFeed();
+        switchView('feed');
 
     </script>
 </body>
