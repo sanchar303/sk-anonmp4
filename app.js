@@ -952,7 +952,6 @@ $('btn-delete-video').addEventListener('click', () => { if (state.watching) dele
 /* ------------------------------ Upload ------------------------------ */
 const fInput = $('file-input');
 const dropArea = $('drop-area');
-const uploadHolder = { xhr: null };
 let wakeLock = null;
 
 async function holdScreen() {
@@ -964,9 +963,11 @@ function releaseScreen() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && state.uploading) holdScreen(); });
 
-function setProgress(fraction, visible = true) {
+function setProgress(fraction, visible = true, indeterminate = false) {
+    const bar = $('upload-progress-bar');
     $('upload-progress').classList.toggle('is-hidden', !visible);
-    $('upload-progress-bar').style.width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
+    bar.classList.toggle('indeterminate', indeterminate);
+    bar.style.width = indeterminate ? '' : `${Math.max(0, Math.min(1, fraction)) * 100}%`;
 }
 
 function resetUploadUI() {
@@ -999,31 +1000,28 @@ fInput.addEventListener('change', (e) => {
 ['dragenter', 'dragover'].forEach((ev) => dropArea.addEventListener(ev, () => dropArea.classList.add('dragover')));
 ['dragleave', 'drop'].forEach((ev) => dropArea.addEventListener(ev, () => dropArea.classList.remove('dragover')));
 
-function sendForm(url, fd, onProgress) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        uploadHolder.xhr = xhr;
-        xhr.open('POST', url);
-        xhr.responseType = 'text';
-        xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
-        xhr.onload = () => {
-            let data = null;
-            try { data = JSON.parse(xhr.responseText); } catch { data = null; }
-            resolve({ status: xhr.status, ok: xhr.status >= 200 && xhr.status < 300, data });
-        };
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.onabort = () => { const err = new Error('Upload cancelled.'); err.cancelled = true; reject(err); };
-        xhr.send(fd);
-    });
+/* The upload goes out as a plain fetch POST (a "simple" CORS request).
+   Byte-level progress via XHR upload events would force a CORS preflight, which the upload API
+   does not answer - the browser would then block the upload. So the UI shows a live animated bar
+   with elapsed time instead, and the request stays preflight-free. */
+let uploadAbort = null;
+
+const cancelledError = () => { const e = new Error('Upload cancelled.'); e.cancelled = true; return e; };
+
+async function postForm(url, fd, signal) {
+    const res = await fetch(url, { method: 'POST', body: fd, signal });
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    return { status: res.status, ok: res.ok, data };
 }
 
-async function transmit(fd, size, onProgress) {
+async function transmit(fd, size, signal) {
     // Layer 1: direct upload (no custom headers, so no preflight)
     let res = null;
     try {
-        res = await sendForm(UPLOAD_URL, fd, onProgress);
+        res = await postForm(UPLOAD_URL, fd, signal);
     } catch (err) {
-        if (err.cancelled) throw err;
+        if (err && err.name === 'AbortError') throw cancelledError();
         console.warn('Direct upload blocked (CORS/Network).', err);
     }
 
@@ -1033,13 +1031,17 @@ async function transmit(fd, size, onProgress) {
     // Layer 2: CORS proxy fallback (small files only - a proxy cannot carry multi-GB bodies)
     if (size > PROXY_MAX_BYTES) throw new Error('Transmission failed.');
     showToast('Direct link blocked, routing via proxy...', 'info');
-    onProgress(0, size);
-    const proxied = await sendForm(PROXY_URL, fd, onProgress);
-    if (!proxied.data) throw new Error('Transmission failed.');
-    return proxied.data;
+    try {
+        const proxied = await postForm(PROXY_URL, fd, signal);
+        if (!proxied.data) throw new Error('Transmission failed.');
+        return proxied.data;
+    } catch (err) {
+        if (err && err.name === 'AbortError') throw cancelledError();
+        throw new Error('Transmission failed.');
+    }
 }
 
-$('btn-cancel-upload').addEventListener('click', () => { if (uploadHolder.xhr) uploadHolder.xhr.abort(); });
+$('btn-cancel-upload').addEventListener('click', () => { if (uploadAbort) uploadAbort.abort(); });
 
 $('btn-submit-upload').addEventListener('click', async () => {
     if (state.uploading) return;
@@ -1049,41 +1051,33 @@ $('btn-submit-upload').addEventListener('click', async () => {
     const btn = $('btn-submit-upload');
     const ogHtml = btn.innerHTML;
     const statsEl = $('upload-stats');
+    const file = state.uploadFile;
+    const startedAt = Date.now();
+
     state.uploading = true;
+    uploadAbort = new AbortController();
     btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span id="upload-label">Transmitting...</span>`;
     btn.classList.add('is-busy');
     $('btn-cancel-upload').classList.remove('is-hidden');
     statsEl.classList.remove('is-hidden');
-    statsEl.textContent = '';
-    setProgress(0, true);
+    setProgress(0, true, true);
     holdScreen();
+
+    const tick = () => {
+        statsEl.textContent = `${fmtBytes(file.size)} \u00b7 ${fmtTime((Date.now() - startedAt) / 1000)} elapsed \u00b7 keep this tab open`;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
 
     const guard = (e) => { e.preventDefault(); e.returnValue = ''; };
     window.addEventListener('beforeunload', guard);
 
-    let lastT = performance.now(), lastLoaded = 0, speed = 0;
-    const onProgress = (loaded, total) => {
-        const now = performance.now();
-        if (now - lastT >= 500) {
-            const inst = ((loaded - lastLoaded) / (now - lastT)) * 1000;
-            speed = speed ? speed * 0.7 + inst * 0.3 : inst;
-            lastT = now; lastLoaded = loaded;
-        }
-        const frac = total ? loaded / total : 0;
-        setProgress(frac, true);
-        const label = $('upload-label');
-        if (label) label.textContent = `Transmitting... ${Math.floor(frac * 100)}%`;
-        statsEl.textContent = loaded >= total
-            ? 'Finalizing on the network...'
-            : `${fmtBytes(loaded)} of ${fmtBytes(total)} \u00b7 ${fmtBytes(speed)}/s \u00b7 ${fmtTime((total - loaded) / (speed || 1))} left`;
-    };
-
     try {
         showToast('Uploading to secure node...', 'info');
         const fd = new FormData();
-        fd.append('file', state.uploadFile);
+        fd.append('file', file);
 
-        const apiData = await transmit(fd, state.uploadFile.size, onProgress);
+        const apiData = await transmit(fd, file.size, uploadAbort.signal);
         if (!apiData.success) throw new Error(apiData.error?.message || 'Transmission failed.');
 
         showToast('Syncing block to ledger...', 'info');
@@ -1091,7 +1085,7 @@ $('btn-submit-upload').addEventListener('click', async () => {
         const customTitle = $('upload-title').value.trim();
         const meta = {
             id: apiData.video_id,
-            title: customTitle || apiData.title || state.uploadFile.name,
+            title: customTitle || apiData.title || file.name,
             uploader: state.user,
             thumbnail: apiData.thumbnail || NO_THUMB,
             watch_url: apiData.watch_url,
@@ -1112,9 +1106,10 @@ $('btn-submit-upload').addEventListener('click', async () => {
         if (err && err.cancelled) showToast('Upload cancelled.', 'info');
         else showToast(err && err.message ? err.message : 'Transmission failed.', 'error');
     } finally {
+        clearInterval(timer);
         window.removeEventListener('beforeunload', guard);
         releaseScreen();
-        uploadHolder.xhr = null;
+        uploadAbort = null;
         state.uploading = false;
         btn.innerHTML = ogHtml;
         btn.classList.remove('is-busy');

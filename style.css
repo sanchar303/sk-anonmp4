@@ -291,7 +291,7 @@ textarea.sk-input { resize: none; line-height: 1.4; }
 }
 .search .sk-input { padding: 13px 16px 13px 42px; border-radius: 999px; }
 
-.chip-row { display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; padding: 4px 2px; }
+.chip-row { display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x pan-y; padding: 4px 2px; }
 .chip-row::-webkit-scrollbar { display: none; }
 .chip-sep { width: 1px; height: 22px; background: var(--surface-border); flex-shrink: 0; margin: 0 4px; }
 body.theme-neu .chip-sep { background: #2b3144; }
@@ -393,6 +393,11 @@ body.theme-neu .drop-zone { border-color: #333a4d; box-shadow: var(--input-shado
     width: 0%; height: 100%; border-radius: 999px; background: var(--accent);
     box-shadow: 0 0 12px var(--accent); transition: width 0.2s linear;
 }
+.progress-bar.indeterminate { width: 40%; transition: none; animation: slide 1.3s ease-in-out infinite; }
+@keyframes slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+}
 
 /* === Modals === */
 .modal-backdrop {
@@ -451,7 +456,7 @@ body.theme-neu .drop-zone { border-color: #333a4d; box-shadow: var(--input-shado
 
 .player-wrapper {
     position: relative; aspect-ratio: 16/9; margin: 0 auto;
-    width: min(100%, calc((94dvh - 230px) * 16 / 9));
+    width: min(100%, calc((100dvh - 130px) * 16 / 9));
     background: #000; overflow: hidden; border-radius: 12px;
 }
 .player-loader {
@@ -496,7 +501,7 @@ body.theme-neu .drop-zone { border-color: #333a4d; box-shadow: var(--input-shado
 .comment-empty { padding: 16px 0; font-size: 0.85rem; }
 
 @media (min-width: 1024px) {
-    .watch-body { grid-template-columns: minmax(0, 1fr) 360px; overflow: hidden; }
+    .watch-body { grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
     .watch-main { overflow-y: auto; scrollbar-width: none; touch-action: pan-y; }
     .watch-main::-webkit-scrollbar { display: none; }
     .comments { border-top: none; border-left: 1px solid var(--surface-border); overflow: hidden; }
@@ -557,5 +562,6 @@ body.theme-neu .drop-zone { border-color: #333a4d; box-shadow: var(--input-shado
 
 @media (prefers-reduced-motion: reduce) {
     .orb, .live-dot { animation: none; }
+    .progress-bar.indeterminate { animation-duration: 3s; }
     *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
