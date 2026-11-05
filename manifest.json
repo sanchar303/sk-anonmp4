@@ -1,0 +1,16 @@
+{
+    "name": "SK AnonMp4",
+    "short_name": "AnonMp4",
+    "description": "Secure anonymous stream network.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#050505",
+    "theme_color": "#050505",
+    "icons": [
+        { "src": "favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}
